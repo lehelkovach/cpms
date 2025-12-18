@@ -1,0 +1,14 @@
+{
+  "name": "cpms-monorepo",
+  "private": true,
+  "author": "Lehel Kovach",
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "test": "pnpm -r test",
+    "pack:check": "pnpm -r pack:check",
+    "dev:api": "pnpm -C packages/server-node dev",
+    "test:e2e": "pnpm -C tools/e2e e2e",
+    "gate": "pnpm test && pnpm test:e2e && pnpm pack:check"
+  }
+}

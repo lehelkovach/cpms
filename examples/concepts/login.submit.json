@@ -1,0 +1,14 @@
+{
+  "concept_id": "concept:submit_login@1.0.0",
+  "concept_type": "type:submit_button",
+  "signals": [
+    { "signal_id": "role", "applies_to": ["dom"], "evaluator": "dom.role_is",
+      "params": { "role": "button" }, "mode": "fuzzy", "weight": 0.7 },
+    { "signal_id": "terms", "applies_to": ["dom"], "evaluator": "dom.text_contains_any",
+      "params": { "terms": ["log in","login","sign in","continue"] }, "mode": "fuzzy", "weight": 1.4 }
+  ],
+  "resolution": {
+    "score_model": { "type": "hybrid_logit", "prior_logit": -0.8, "epsilon": 0.0001, "calibration": "sigmoid" },
+    "decision": { "policy": "winner_take_all", "min_conf": 0.65, "min_margin": 0.10, "confirm_threshold": 0.90 }
+  }
+}

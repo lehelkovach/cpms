@@ -1,0 +1,8 @@
+{
+  "page_id": "fixture:login",
+  "candidates": [
+    { "candidate_id": "cand_email", "dom": { "attrs": { "autocomplete": "email", "name": "email", "id": "email" }, "label_text": "Email", "placeholder": "you@example.com" } },
+    { "candidate_id": "cand_pass",  "dom": { "attrs": { "autocomplete": "current-password", "name": "password", "id": "password" }, "label_text": "Password", "placeholder": "••••••••" } },
+    { "candidate_id": "cand_btn",   "dom": { "role": "button", "label_text": "Log in", "attrs": { "id": "loginBtn" } } }
+  ]
+}

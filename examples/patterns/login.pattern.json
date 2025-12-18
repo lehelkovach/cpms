@@ -1,0 +1,9 @@
+{
+  "pattern_id": "pattern:login@1.0.0",
+  "includes": ["concept:email@1.0.0", "concept:password@1.0.0", "concept:submit_login@1.0.0"],
+  "strategy": { "type": "greedy_repair", "top_k": 5, "max_repairs": 10 },
+  "constraints": [
+    { "type": "unique_per_scope", "params": { "scope": "page" } },
+    { "type": "required_concepts", "params": { "ids": ["concept:email@1.0.0", "concept:password@1.0.0"] } }
+  ]
+}

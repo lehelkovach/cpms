@@ -1,0 +1,24 @@
+{
+  "name": "@lehelkovach/cpms-server-node",
+  "version": "0.1.0",
+  "description": "CPMS Node API (pure JS): match, match_explain, match_pattern.",
+  "author": "Lehel Kovach",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "test": "vitest run",
+    "pack:check": "npm pack --dry-run"
+  },
+  "dependencies": {
+    "@lehelkovach/cpms-core": "workspace:*",
+    "fastify": "^5.2.0",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}

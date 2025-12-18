@@ -1,0 +1,7 @@
+{
+  "name": "cpms-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": { "e2e": "node run-e2e.mjs" },
+  "dependencies": { "undici": "^6.21.0" }
+}

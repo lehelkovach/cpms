@@ -1,0 +1,27 @@
+{
+  "name": "@lehelkovach/cpms-core",
+  "version": "0.1.0",
+  "description": "CPMS core (pure JS): evaluators + hybrid scoring + explain traces + naive pattern matching.",
+  "author": "Lehel Kovach",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "pack:check": "npm pack --dry-run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}

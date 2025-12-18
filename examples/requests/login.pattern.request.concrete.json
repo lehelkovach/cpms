@@ -1,0 +1,55 @@
+{
+  "pattern": {
+    "pattern_id": "pattern:login@1.0.0",
+    "includes": ["concept:email@1.0.0", "concept:password@1.0.0", "concept:submit_login@1.0.0"],
+    "strategy": { "type": "greedy_repair", "top_k": 5, "max_repairs": 10 },
+    "constraints": [
+      { "type": "unique_per_scope", "params": { "scope": "page" } },
+      { "type": "required_concepts", "params": { "ids": ["concept:email@1.0.0", "concept:password@1.0.0"] } }
+    ]
+  },
+  "concepts": [
+    {
+      "concept_id": "concept:email@1.0.0",
+      "concept_type": "type:email_field",
+      "signals": [
+        { "signal_id": "ac", "applies_to": ["dom"], "evaluator": "dom.attr_in",
+          "params": { "attr": "autocomplete", "values": ["email","username"] }, "mode": "bayes", "llr_when_true": 3.0, "llr_when_false": 0.0 },
+        { "signal_id": "terms", "applies_to": ["dom"], "evaluator": "dom.text_contains_any",
+          "params": { "terms": ["email","e-mail","username","user name","login"] }, "mode": "fuzzy", "weight": 1.2 }
+      ],
+      "resolution": { "score_model": { "type": "hybrid_logit", "prior_logit": -1.0, "epsilon": 0.0001, "calibration": "sigmoid" },
+        "decision": { "policy": "winner_take_all", "min_conf": 0.75, "min_margin": 0.10, "confirm_threshold": 0.90 } }
+    },
+    {
+      "concept_id": "concept:password@1.0.0",
+      "concept_type": "type:password_field",
+      "signals": [
+        { "signal_id": "ac", "applies_to": ["dom"], "evaluator": "dom.attr_in",
+          "params": { "attr": "autocomplete", "values": ["current-password","new-password"] }, "mode": "bayes", "llr_when_true": 3.0, "llr_when_false": 0.0 },
+        { "signal_id": "terms", "applies_to": ["dom"], "evaluator": "dom.text_contains_any",
+          "params": { "terms": ["password","passcode","pwd"] }, "mode": "fuzzy", "weight": 1.2 }
+      ],
+      "resolution": { "score_model": { "type": "hybrid_logit", "prior_logit": -1.0, "epsilon": 0.0001, "calibration": "sigmoid" },
+        "decision": { "policy": "winner_take_all", "min_conf": 0.75, "min_margin": 0.10, "confirm_threshold": 0.90 } }
+    },
+    {
+      "concept_id": "concept:submit_login@1.0.0",
+      "concept_type": "type:submit_button",
+      "signals": [
+        { "signal_id": "role", "applies_to": ["dom"], "evaluator": "dom.role_is", "params": { "role": "button" }, "mode": "fuzzy", "weight": 0.7 },
+        { "signal_id": "terms", "applies_to": ["dom"], "evaluator": "dom.text_contains_any", "params": { "terms": ["log in","login","sign in","continue"] }, "mode": "fuzzy", "weight": 1.4 }
+      ],
+      "resolution": { "score_model": { "type": "hybrid_logit", "prior_logit": -0.8, "epsilon": 0.0001, "calibration": "sigmoid" },
+        "decision": { "policy": "winner_take_all", "min_conf": 0.65, "min_margin": 0.10, "confirm_threshold": 0.90 } }
+    }
+  ],
+  "observation": {
+    "page_id": "fixture:login",
+    "candidates": [
+      { "candidate_id": "cand_email", "dom": { "attrs": { "autocomplete": "email", "name": "email", "id": "email" }, "label_text": "Email", "placeholder": "you@example.com" } },
+      { "candidate_id": "cand_pass",  "dom": { "attrs": { "autocomplete": "current-password", "name": "password", "id": "password" }, "label_text": "Password", "placeholder": "••••••••" } },
+      { "candidate_id": "cand_btn",   "dom": { "role": "button", "label_text": "Log in", "attrs": { "id": "loginBtn" } } }
+    ]
+  }
+}
