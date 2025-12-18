@@ -88,14 +88,14 @@ CPMS will store procedures as first-class graph objects so agents can:
 
 ```mermaid
 flowchart LR
-  U[User/Agent Goal] --> O[Observation<br/>(DOM + optional vision)]
-  O --> M[CPMS Match<br/>Concept/Pattern]
-  M -->|accepted| X[Executor (agent repo)<br/>fill/click/verify]
+  U[User/Agent Goal] --> O[Observation (DOM + optional vision)]
+  O --> M[CPMS Match (Concept + Pattern)]
+  M -->|accepted| X[Executor (agent repo) fill/click/verify]
   M -->|low confidence| Q[Ask user for help]
   Q --> F[Feedback + Correction]
   X --> F
   F --> P[Patch (allowlisted ops)]
-  P --> R[New Version<br/>concept/pattern@...-draft]
+  P --> R[New Version concept/pattern@...-draft]
   R --> T[Regression Fixtures + Gate]
   T -->|pass| A[Promote to Active]
   T -->|fail| K[Keep draft + iterate]
