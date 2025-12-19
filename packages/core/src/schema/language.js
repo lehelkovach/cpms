@@ -35,6 +35,7 @@ export const ConceptSchemaLanguage = {
     signals: { type: "Signal[]", required: true, description: "Evidence emitting evaluators. Each signal must describe evaluator + weighting." },
     resolution: { type: "object", required: true, description: "Scoring + decision policy parameters." },
     llm_embedding: { type: "number[] | null", required: false, description: "Optional vector used for retrieval." },
+    llm_embedding_meta: { type: "object | null", required: false, description: "Metadata describing which embedding/version produced llm_embedding (provider, model, version, dimensions)." },
     status: { type: "string", required: true, description: "Workflow status (draft/active/etc.)." },
     meta: { type: "object", required: true, description: "Free-form metadata (source, provenance, notes)." }
   },
@@ -81,6 +82,7 @@ export function buildConceptSchemaTemplate(intent = {}) {
     version: intent.version ?? SCHEMA_VERSION,
     resolution: intent.resolution ?? structuredClone(DEFAULT_RESOLUTION),
     embedding: intent.embedding ?? null,
+    embedding_meta: intent.embedding_meta ?? null,
     meta: intent.meta ?? { instructions: "Document the provenance + reasoning for this prototype." }
   });
 

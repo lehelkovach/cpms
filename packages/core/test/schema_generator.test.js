@@ -7,6 +7,8 @@ describe("schema generator/compiler", () => {
     expect(typeof c.uuid).toBe("string");
     expect(c.labels[0]).toBe("card number");
     expect(c.status).toBe("draft");
+     expect(c.llm_embedding_meta).toBeTruthy();
+     expect(c.llm_embedding_meta.version).toBe("2024-05-01");
   });
 
   it("compiler drops unknown evaluators but does not fail", () => {

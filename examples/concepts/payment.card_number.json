@@ -1,0 +1,35 @@
+{
+  "concept_id": "concept:card_number@1.0.0",
+  "concept_type": "type:card_number",
+  "signals": [
+    {
+      "signal_id": "ac",
+      "applies_to": ["dom"],
+      "evaluator": "dom.attr_in",
+      "params": { "attr": "autocomplete", "values": ["cc-number", "card-number"] },
+      "mode": "bayes",
+      "llr_when_true": 3.0,
+      "llr_when_false": 0.0
+    },
+    {
+      "signal_id": "type",
+      "applies_to": ["dom"],
+      "evaluator": "dom.type_is",
+      "params": { "types": ["text", "tel", "number"] },
+      "mode": "fuzzy",
+      "weight": 0.6
+    },
+    {
+      "signal_id": "terms",
+      "applies_to": ["dom"],
+      "evaluator": "dom.text_contains_any",
+      "params": { "terms": ["card number", "credit card", "debit card"] },
+      "mode": "fuzzy",
+      "weight": 1.3
+    }
+  ],
+  "resolution": {
+    "score_model": { "type": "hybrid_logit", "prior_logit": -0.7, "epsilon": 0.0001, "calibration": "sigmoid" },
+    "decision": { "policy": "winner_take_all", "min_conf": 0.75, "min_margin": 0.10, "confirm_threshold": 0.90 }
+  }
+}

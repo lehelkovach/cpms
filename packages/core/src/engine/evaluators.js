@@ -35,6 +35,15 @@ REGISTRY.register("dom.role_is", (cand, { role }) => {
   return r === String(role ?? "").toLowerCase() ? 1 : 0;
 });
 
+REGISTRY.register("dom.type_is", (cand, params = {}) => {
+  const observed = cand?.dom?.type ?? cand?.dom?.attrs?.type;
+  if (!observed) return 0;
+  const target = params?.types ?? params?.type ?? [];
+  const choices = Array.isArray(target) ? target : [target];
+  const lower = String(observed).toLowerCase();
+  return choices.some((value) => String(value ?? "").toLowerCase() === lower) ? 1 : 0;
+});
+
 // Vision evaluator placeholder (expects OCR tokens pre-extracted)
 REGISTRY.register("vision.ocr_nearby_contains", (cand, { terms }) => {
   const ocr = (cand?.vision?.ocr_nearby ?? []).join(" ").toLowerCase();

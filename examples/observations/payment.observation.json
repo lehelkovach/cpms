@@ -1,0 +1,46 @@
+{
+  "page_id": "fixture:payment",
+  "candidates": [
+    {
+      "candidate_id": "cand_card_name",
+      "dom": {
+        "label_text": "Name on card",
+        "attrs": { "autocomplete": "cc-name", "name": "cardName" },
+        "placeholder": "Full name"
+      }
+    },
+    {
+      "candidate_id": "cand_card_number",
+      "dom": {
+        "type": "text",
+        "label_text": "Card number",
+        "attrs": { "autocomplete": "cc-number", "name": "cardNumber" },
+        "placeholder": "1234 5678 9012 3456"
+      }
+    },
+    {
+      "candidate_id": "cand_expiry",
+      "dom": {
+        "label_text": "Expiry date",
+        "attrs": { "autocomplete": "cc-exp", "name": "cardExp" },
+        "placeholder": "MM / YY"
+      }
+    },
+    {
+      "candidate_id": "cand_cvv",
+      "dom": {
+        "label_text": "Security code",
+        "attrs": { "autocomplete": "cc-csc", "name": "cardCvv" },
+        "placeholder": "CVV"
+      }
+    },
+    {
+      "candidate_id": "cand_pay",
+      "dom": {
+        "role": "button",
+        "text": "Pay now",
+        "attrs": { "id": "payNow" }
+      }
+    }
+  ]
+}

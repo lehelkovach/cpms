@@ -18,6 +18,8 @@ describe("concept schema language", () => {
     const template = buildConceptSchemaTemplate({ labels: ["concept:test@1.0.0"], prototype_of: "type:test" });
     expect(template.labels[0]).toBe("concept:test@1.0.0");
     expect(template.prototype_of).toBe("type:test");
+    expect(template.llm_embedding_meta).toBeTruthy();
+    expect(template.llm_embedding_meta.version).toBe("2024-05-01");
   });
 
   it("validates concepts and reports compiler findings", () => {

@@ -36,7 +36,13 @@ Concepts capture a matchable prototype (e.g., `concept:email@1.0.0`). They descr
     "score_model": { "type": "hybrid_logit", "prior_logit": -1.0, "calibration": "sigmoid", "epsilon": 1e-6 },
     "decision": { "policy": "winner_take_all", "min_conf": 0.75, "min_margin": 0.10, "confirm_threshold": 0.90 }
   },
-  "llm_embedding": null,
+  "llm_embedding": [0.013, -0.021, 0.005, "..."],
+  "llm_embedding_meta": {
+    "provider": "openai",
+    "model": "text-embedding-3-large",
+    "version": "2024-05-01",
+    "dimensions": 3072
+  },
   "status": "draft",
   "meta": { "source": "agent:bootstrap", "notes": "Seeded from login fixtures" }
 }
@@ -48,6 +54,24 @@ Key rules:
 - `prototype_of` points to an ontology/type (e.g., `type:password_field`, `type:submit_button`).
 - Each signal references an allow-listed evaluator (`dom.attr_in`, `dom.text_contains_any`, `dom.role_is`, `dom.type_is` in v0.1.0). The compiler clamps weights / LLRs to safe ranges.
 - Status tracks workflow state (`draft`, `active`, etc.). Drafts are stored append-only until promoted.
+- `llm_embedding_meta` describes which embedding model/version produced the vector so downstream vector search can stay compatible. Always update `version` when switching models.
+
+### Embedding metadata contract
+
+Vector retrieval only works if every concept ships with a vector **and** the metadata describing how it was generated. CPMS expects:
+
+```json
+"llm_embedding": [0.013, -0.021, 0.005, "..."],
+"llm_embedding_meta": {
+  "provider": "openai",
+  "model": "text-embedding-3-large",
+  "version": "2024-05-01",
+  "dimensions": 3072,
+  "notes": "Regenerate if provider/model changes."
+}
+```
+
+Downstream RAG/LLM tooling reads `llm_embedding_meta` to choose the right vector index or regenerate embeddings for existing prototypes. Treat this as required whenever embedding search is enabled; mismatched metadata will lead to incorrect similarity rankings.
 
 Use `POST /cpms/schema/concepts/persist` to validate + compile + persist a concept; the server writes to the local JSONL store and to the configured graph backend (file or ArangoDB).
 

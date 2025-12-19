@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
 
+const DEFAULT_EMBEDDING_META = {
+  provider: "openai",
+  model: "text-embedding-3-large",
+  version: "2024-05-01",
+  dimensions: 3072,
+  notes: "Update to the embedding version used to create llm_embedding."
+};
+
 /**
  * Generate a Concept draft from minimal intent.
  * UUID is the durable identity; labels are human-readable.
@@ -13,6 +21,7 @@ export function generateConceptDraft(input = {}) {
     signals = [],
     resolution,
     embedding = null,
+    embedding_meta,
     meta = {}
   } = input;
 
@@ -31,6 +40,7 @@ export function generateConceptDraft(input = {}) {
       decision: { policy: "winner_take_all", min_conf: 0.75, min_margin: 0.1, confirm_threshold: 0.9 }
     },
     llm_embedding: embedding,
+    llm_embedding_meta: structuredClone(embedding_meta ?? DEFAULT_EMBEDDING_META),
     status: "draft",
     meta
   };

@@ -1,0 +1,27 @@
+{
+  "concept_id": "concept:card_name@1.0.0",
+  "concept_type": "type:cardholder_name",
+  "signals": [
+    {
+      "signal_id": "ac",
+      "applies_to": ["dom"],
+      "evaluator": "dom.attr_in",
+      "params": { "attr": "autocomplete", "values": ["cc-name", "cc-full-name"] },
+      "mode": "bayes",
+      "llr_when_true": 2.6,
+      "llr_when_false": 0.0
+    },
+    {
+      "signal_id": "terms",
+      "applies_to": ["dom"],
+      "evaluator": "dom.text_contains_any",
+      "params": { "terms": ["name on card", "cardholder", "card holder", "card name"] },
+      "mode": "fuzzy",
+      "weight": 1.0
+    }
+  ],
+  "resolution": {
+    "score_model": { "type": "hybrid_logit", "prior_logit": -0.8, "epsilon": 0.0001, "calibration": "sigmoid" },
+    "decision": { "policy": "winner_take_all", "min_conf": 0.70, "min_margin": 0.10, "confirm_threshold": 0.90 }
+  }
+}

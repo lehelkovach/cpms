@@ -1,0 +1,20 @@
+{
+  "pattern_id": "pattern:payment@1.0.0",
+  "includes": [
+    "concept:card_name@1.0.0",
+    "concept:card_number@1.0.0",
+    "concept:card_expiry@1.0.0",
+    "concept:card_cvv@1.0.0",
+    "concept:submit_payment@1.0.0"
+  ],
+  "strategy": { "type": "greedy_repair", "top_k": 5, "max_repairs": 10 },
+  "constraints": [
+    { "type": "unique_per_scope", "params": { "scope": "page" } },
+    { "type": "required_concepts", "params": { "ids": [
+      "concept:card_name@1.0.0",
+      "concept:card_number@1.0.0",
+      "concept:card_expiry@1.0.0",
+      "concept:card_cvv@1.0.0"
+    ] } }
+  ]
+}

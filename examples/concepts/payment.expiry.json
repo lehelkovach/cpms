@@ -1,0 +1,27 @@
+{
+  "concept_id": "concept:card_expiry@1.0.0",
+  "concept_type": "type:card_expiry",
+  "signals": [
+    {
+      "signal_id": "ac",
+      "applies_to": ["dom"],
+      "evaluator": "dom.attr_in",
+      "params": { "attr": "autocomplete", "values": ["cc-exp", "cc-exp-month", "cc-exp-year"] },
+      "mode": "bayes",
+      "llr_when_true": 2.8,
+      "llr_when_false": 0.0
+    },
+    {
+      "signal_id": "terms",
+      "applies_to": ["dom"],
+      "evaluator": "dom.text_contains_any",
+      "params": { "terms": ["expiry", "expiration", "exp date", "mm / yy"] },
+      "mode": "fuzzy",
+      "weight": 1.1
+    }
+  ],
+  "resolution": {
+    "score_model": { "type": "hybrid_logit", "prior_logit": -0.8, "epsilon": 0.0001, "calibration": "sigmoid" },
+    "decision": { "policy": "winner_take_all", "min_conf": 0.70, "min_margin": 0.10, "confirm_threshold": 0.90 }
+  }
+}
