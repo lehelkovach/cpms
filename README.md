@@ -15,6 +15,20 @@ It’s built to be the **memory + schema + matching** component used by AI agent
 
 ---
 
+## Documentation
+
+- **Schema language (JSON)**: how to define Concepts, Patterns, and (planned) Procedures  
+  - [docs/SCHEMA_LANGUAGE.md](docs/SCHEMA_LANGUAGE.md)
+- **Observation model**: how to represent DOM + vision candidates for matching  
+  - [docs/OBSERVATION_MODEL.md](docs/OBSERVATION_MODEL.md)
+- **Matching + confidence**: scoring, explain traces, winner-take-all, thresholds  
+  - [docs/MATCHING_AND_CONFIDENCE.md](docs/MATCHING_AND_CONFIDENCE.md)
+- **Updates + versioning (planned)**: patches, drafts, promotion, provenance  
+  - [docs/PATCH_AND_VERSIONING.md](docs/PATCH_AND_VERSIONING.md)
+- **Graph model (ArangoDB) (draft)**: recommended property-graph collections and edges  
+  - [docs/GRAPH_MODEL_ARANGODB.md](docs/GRAPH_MODEL_ARANGODB.md)
+
+
 ## What problem CPMS solves
 
 Web UIs and forms rarely look the same:
@@ -44,7 +58,6 @@ A concept contains:
 - **signals** (rules / evidence) that score candidates
 - a **decision policy** (winner-take-all, margins, thresholds)
 - optional **embeddings** (stored and retrieved via the DB layer)
-- **llm_embedding metadata** (provider/model/version/dimensions) so retrieval always uses the correct vector model
 
 ### Signals
 Signals are allowlisted evaluator calls (safe, deterministic), such as:
@@ -89,17 +102,17 @@ CPMS will store procedures as first-class graph objects so agents can:
 
 ```mermaid
 flowchart LR
-  U["User/Agent Goal"] --> O["Observation (DOM + optional vision)"]
-  O --> M["CPMS Match (Concept + Pattern)"]
-  M -->|accepted| X["Executor (agent repo) fill/click/verify"]
-  M -->|low confidence| Q["Ask user for help"]
-  Q --> F["Feedback + Correction"]
+  U[User/Agent Goal] --> O[Observation<br/>(DOM + optional vision)]
+  O --> M[CPMS Match<br/>Concept/Pattern]
+  M -->|accepted| X[Executor (agent repo)<br/>fill/click/verify]
+  M -->|low confidence| Q[Ask user for help]
+  Q --> F[Feedback + Correction]
   X --> F
-  F --> P["Patch (allowlisted ops)"]
-  P --> R["New Version concept/pattern@...-draft"]
-  R --> T["Regression Fixtures + Gate"]
-  T -->|pass| A["Promote to Active"]
-  T -->|fail| K["Keep draft + iterate"]
+  F --> P[Patch (allowlisted ops)]
+  P --> R[New Version<br/>concept/pattern@...-draft]
+  R --> T[Regression Fixtures + Gate]
+  T -->|pass| A[Promote to Active]
+  T -->|fail| K[Keep draft + iterate]
 
 Use cases
 1) Form understanding for agents (DOM-first, vision optional)
@@ -150,7 +163,7 @@ tools/e2e
 End-to-end test runner (boots API, calls match endpoints).
 
 examples/
-JSON fixtures for observations, concepts, patterns, and sample requests (login + payment form coverage included).
+JSON fixtures for observations, concepts, patterns, and sample requests.
 
 docs/
 Architecture notes (ADRs, future designs).
@@ -195,41 +208,6 @@ assigned: mapping of concept IDs → candidate IDs
 
 trace: rankings + repairs + missing required concepts
 
-Schema language + concept ingestion
-
-LLM agents can call the following endpoints to build and persist fuzzy prototypes:
-
-- `GET /cpms/schema/concepts/language` — describe the CPMS schema language and return a ready-to-edit template.
-- `POST /cpms/schema/concepts/template` — pass an `intent` payload (labels, prototype_of, seed signals) to get a draft JSON object.
-- `POST /cpms/schema/concepts/persist` — submit a fully-formed concept. The server validates it, runs the compiler (clamps weights + drops unknown evaluators), writes the draft to the local append-only store, and attempts to persist it to the configured graph backend (file JSONL by default or ArangoDB).
-
-Every concept draft must include both the `llm_embedding` vector and its `llm_embedding_meta` block (`provider`, `model`, `version`, `dimensions`, optional notes). CPMS uses those fields to power vector retrieval so LLM copilots can RAG over prior concepts/patterns. If you swap embedding models, bump the metadata version before persisting new drafts and regenerate vectors for existing records to keep search consistent.
-
-Example template request:
-
-```bash
-curl -s http://localhost:8787/cpms/schema/concepts/template \
-  -H 'content-type: application/json' \
-  -d '{"labels":["concept:email@1.0.1"],"prototype_of":"type:email_field"}'
-```
-
-Example persist request:
-
-```bash
-curl -s http://localhost:8787/cpms/schema/concepts/persist \
-  -H 'content-type: application/json' \
-  -d @concept.email.json
-```
-
-Graph persistence
-
-`CPMS_GRAPH_STORE=file` (default) writes to `.cpms-graph/concepts.jsonl` in the repo. Set `CPMS_GRAPH_STORE=arango` to write to ArangoDB and configure:
-
-- `ARANGO_URL` (e.g. `http://localhost:8529`)
-- `ARANGO_DB` (defaults to `_system`)
-- `ARANGO_COLLECTION` (defaults to `cpms_concepts`)
-- `ARANGO_AUTH` (`user:password`, used for HTTP Basic auth)
-
 Storage + ArangoDB (optional backend)
 
 CPMS is designed to support a property-graph backend (recommended for versioning + provenance)
@@ -245,20 +223,11 @@ expose a DB API used by agents (separate repo) for memory and updates
 
 Docker + ArangoDB compose files can live in this repo (dev-only), or in a separate cpms-stack repo if you prefer operational separation.
 
-Documentation
-
-- [docs/SCHEMA_LANGUAGE.md](docs/SCHEMA_LANGUAGE.md) — JSON schema language for Concepts, Patterns, and planned Procedures.
-- [docs/OBSERVATION_MODEL.md](docs/OBSERVATION_MODEL.md) — DOM + vision observation contract supplied by automation adapters.
-- [docs/MATCHING_AND_CONFIDENCE.md](docs/MATCHING_AND_CONFIDENCE.md) — scoring pipeline, thresholds, explain traces.
-- [docs/PATCH_AND_VERSIONING.md](docs/PATCH_AND_VERSIONING.md) — roadmap for draft → patch → activation workflows.
-- [docs/GRAPH_MODEL_ARANGODB.md](docs/GRAPH_MODEL_ARANGODB.md) — recommended Arango collections and edges.
-- [docs/LLM_AGENT_PROMPTS.md](docs/LLM_AGENT_PROMPTS.md) — prompt template for ChatGPT/LLM agents to search embeddings, call generators, and synthesize login/payment patterns.
-
 Roadmap
 
 Near-term:
 
-Expand billing/payment fixtures + tests
+Add “billing/payment” fixtures + tests
 
 Add patch/update language with strict allowlists
 
@@ -283,3 +252,7 @@ MIT
 Disclaimer
 
 CPMS is a schema + matching library. If you build automation agents on top of it, ensure you have permission to interact with target sites and comply with applicable policies and terms of service.
+
+
+If you want, I can also add a small `docs/ARCHITECTURE.md` that explains the graph model (Concept/Signal/Pattern/Episode/Revision) and includes example Arango collections + edge types.
+::contentReference[oaicite:0]{index=0}
