@@ -1,0 +1,50 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.6
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/johncofax/Dev/git-source/cpms/packages/server-node/.npmrc
+5 silly config load:file:/tmp/tmp.wGC0dn5MLv
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm publish
+8 verbose argv "publish" "--access" "public"
+9 verbose logfile logs-max:10 dir:/home/johncofax/Dev/git-source/cpms/packages/server-node/.npm-cache/_logs/2025-12-31T17_07_26_928Z-
+10 verbose logfile /home/johncofax/Dev/git-source/cpms/packages/server-node/.npm-cache/_logs/2025-12-31T17_07_26_928Z-debug-0.log
+11 verbose publish [ '.' ]
+12 silly logfile done cleaning log files
+13 silly packumentCache heap:1987575808 maxSize:496893952 maxEntrySize:248446976
+14 warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+15 warn publish errors corrected:
+15 warn publish "repository.url" was normalized to "git+https://github.com/lehelkovach/cpms.git"
+16 notice
+17 notice 📦  @lehelkovach/cpms-server-node@0.1.0
+18 notice Tarball Contents
+19 notice 1.4kB README.md
+19 notice 1.0kB package.json
+19 notice 4.7kB src/app.js
+19 notice 2.3kB src/graphStore.js
+19 notice 224B src/server.js
+19 notice 685B src/store.js
+20 notice Tarball Details
+21 notice name: @lehelkovach/cpms-server-node
+22 notice version: 0.1.0
+23 notice filename: lehelkovach-cpms-server-node-0.1.0.tgz
+24 notice package size: 3.6 kB
+25 notice unpacked size: 10.3 kB
+26 notice shasum: 1cb548d10994fd0a7aac5473ae7e12404d691106
+27 notice integrity: sha512-tCjsZfo3K/lwU[...]laxBIPJ0wlXVQ==
+28 notice total files: 6
+29 notice
+30 notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+31 http fetch GET 200 https://registry.npmjs.org/npm 1199ms
+32 http fetch PUT 200 https://registry.npmjs.org/@lehelkovach%2fcpms-server-node 1353ms
+33 verbose cwd /home/johncofax/Dev/git-source/cpms/packages/server-node
+34 verbose os Linux 6.14.0-37-generic
+35 verbose node v20.19.6
+36 verbose npm  v10.8.2
+37 notice
+37 notice New major version of npm available! 10.8.2 -> 11.7.0
+37 notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+37 notice To update run: npm install -g npm@11.7.0
+37 notice  { force: true, [Symbol(proc-log.meta)]: true }
+38 verbose exit 0
+39 info ok

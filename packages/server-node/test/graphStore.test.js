@@ -28,4 +28,38 @@ describe("graph store", () => {
     expect(res.ok).toBe(false);
     expect(res.error).toBe("HTTP 500");
   });
+
+  it("sends basic auth and returns document metadata on success", async () => {
+    const originalEnv = { ...process.env };
+    const restore = (key) => {
+      if (originalEnv[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = originalEnv[key];
+      }
+    };
+
+    try {
+      process.env.ARANGO_AUTH = "user:pass";
+      process.env.ARANGO_URL = "http://arango:8529";
+      process.env.ARANGO_DB = "_system";
+      process.env.ARANGO_COLLECTION = "cpms_concepts";
+
+      const fetchImpl = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ _id: "cpms_concepts/123" })
+      });
+      const store = makeGraphStore({ mode: "arango", fetchImpl });
+      const res = await store.persistConcept({ uuid: "test-uuid", kind: "cpms.concept" });
+
+      expect(res.ok).toBe(true);
+      expect(res.document._id).toBe("cpms_concepts/123");
+
+      const [url, options] = fetchImpl.mock.calls[0];
+      expect(url).toBe("http://arango:8529/_db/_system/_api/document/cpms_concepts");
+      expect(options.headers.authorization).toMatch(/^Basic /);
+    } finally {
+      ["ARANGO_AUTH", "ARANGO_URL", "ARANGO_DB", "ARANGO_COLLECTION"].forEach(restore);
+    }
+  });
 });

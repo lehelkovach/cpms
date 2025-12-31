@@ -6,13 +6,22 @@
   "license": "MIT",
   "type": "module",
   "main": "./src/server.js",
+  "exports": {
+    ".": "./src/server.js",
+    "./app": "./src/app.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "node src/server.js",
     "test": "vitest run",
     "pack:check": "npm pack --dry-run"
   },
   "dependencies": {
-    "@lehelkovach/cpms-core": "workspace:*",
+    "@lehelkovach/cpms-core": "workspace:^0.1.0",
     "fastify": "^5.2.0",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.2",
@@ -20,5 +29,22 @@
   },
   "devDependencies": {
     "vitest": "^2.1.0"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lehelkovach/cpms.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cpms",
+    "api",
+    "fastify",
+    "concepts",
+    "patterns"
+  ]
 }

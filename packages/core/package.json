@@ -17,6 +17,19 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lehelkovach/cpms.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cpms",
+    "concepts",
+    "patterns",
+    "matching"
+  ],
   "scripts": {
     "test": "vitest run",
     "pack:check": "npm pack --dry-run"

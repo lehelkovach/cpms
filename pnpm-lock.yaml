@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      pnpm:
+        specifier: ^10.27.0
+        version: 10.27.0
 
   packages/core:
     devDependencies:
@@ -23,7 +27,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.3
       '@lehelkovach/cpms-core':
-        specifier: workspace:*
+        specifier: workspace:^0.1.0
         version: link:../core
       fastify:
         specifier: ^5.2.0
@@ -638,6 +642,11 @@ packages:
 
   pino@10.1.0:
     resolution: {integrity: sha512-0zZC2ygfdqvqK8zJIr1e+wT1T/L+LF6qvqvbzEQ6tiMAoTqEVK9a1K3YRu8HEUvGEvNqZyPJTtb2sNIoTkB83w==}
+    hasBin: true
+
+  pnpm@10.27.0:
+    resolution: {integrity: sha512-ctaZ2haxF5wUup5k3HHJpAmIy9xlwmTLDkidt96RfyDc9NZNhyNiXylpulLUt+KhFwaC2awqXcrqq3MrfhbwSg==}
+    engines: {node: '>=18.12'}
     hasBin: true
 
   postcss@8.5.6:
@@ -1411,6 +1420,8 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
+
+  pnpm@10.27.0: {}
 
   postcss@8.5.6:
     dependencies:

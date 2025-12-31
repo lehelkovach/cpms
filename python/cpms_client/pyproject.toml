@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cpms_client"
+version = "0.1.1"
+description = "Python wrapper for the CPMS HTTP API"
+authors = [{ name = "Lehel Kovach" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["cpms", "api", "client", "automation"]
+
+[project.urls]
+Homepage = "https://github.com/lehelkovach/cpms"
+Repository = "https://github.com/lehelkovach/cpms"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

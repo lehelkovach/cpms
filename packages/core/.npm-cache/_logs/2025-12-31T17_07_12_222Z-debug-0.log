@@ -1,0 +1,53 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.6
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/johncofax/Dev/git-source/cpms/packages/core/.npmrc
+5 silly config load:file:/tmp/tmp.O5QRgXeu7u
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm publish
+8 verbose argv "publish" "--access" "public"
+9 verbose logfile logs-max:10 dir:/home/johncofax/Dev/git-source/cpms/packages/core/.npm-cache/_logs/2025-12-31T17_07_12_222Z-
+10 verbose logfile /home/johncofax/Dev/git-source/cpms/packages/core/.npm-cache/_logs/2025-12-31T17_07_12_222Z-debug-0.log
+11 verbose publish [ '.' ]
+12 silly logfile done cleaning log files
+13 silly packumentCache heap:1987575808 maxSize:496893952 maxEntrySize:248446976
+14 warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+15 warn publish errors corrected:
+15 warn publish "repository.url" was normalized to "git+https://github.com/lehelkovach/cpms.git"
+16 notice
+17 notice 📦  @lehelkovach/cpms-core@0.1.0
+18 notice Tarball Contents
+19 notice 1.6kB README.md
+19 notice 774B package.json
+19 notice 275B src/dsl/types.js
+19 notice 800B src/engine/decision.js
+19 notice 2.0kB src/engine/evaluators.js
+19 notice 2.1kB src/engine/explain.js
+19 notice 492B src/engine/match.js
+19 notice 4.1kB src/engine/patternMatch.js
+19 notice 850B src/engine/scoring.js
+19 notice 345B src/index.js
+19 notice 2.9kB src/schema/compiler.js
+19 notice 2.9kB src/schema/compiler.ts
+19 notice 1.9kB src/schema/generator.js
+19 notice 2.3kB src/schema/generator.ts
+19 notice 4.9kB src/schema/language.js
+20 notice Tarball Details
+21 notice name: @lehelkovach/cpms-core
+22 notice version: 0.1.0
+23 notice filename: lehelkovach-cpms-core-0.1.0.tgz
+24 notice package size: 7.6 kB
+25 notice unpacked size: 28.3 kB
+26 notice shasum: 2421f402b3880c8d00d4c1ec8850d8e9a2595ead
+27 notice integrity: sha512-o41klv0j88Pxt[...]rPjuA7rzlV1Lw==
+28 notice total files: 15
+29 notice
+30 notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+31 http fetch PUT 200 https://registry.npmjs.org/@lehelkovach%2fcpms-core 2020ms
+32 verbose cwd /home/johncofax/Dev/git-source/cpms/packages/core
+33 verbose os Linux 6.14.0-37-generic
+34 verbose node v20.19.6
+35 verbose npm  v10.8.2
+36 verbose exit 0
+37 info ok

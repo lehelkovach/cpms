@@ -1,0 +1,48 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.6
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/johncofax/Dev/git-source/cpms/packages/core/.npmrc
+5 silly config load:file:/home/johncofax/.npmrc
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm pack
+8 verbose argv "pack" "--dry-run"
+9 verbose logfile logs-max:10 dir:/home/johncofax/Dev/git-source/cpms/.npm-cache/_logs/2025-12-31T16_49_56_933Z-
+10 verbose logfile /home/johncofax/Dev/git-source/cpms/.npm-cache/_logs/2025-12-31T16_49_56_933Z-debug-0.log
+11 silly logfile done cleaning log files
+12 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with EAI_AGAIN
+13 silly packumentCache heap:1987575808 maxSize:496893952 maxEntrySize:248446976
+14 notice
+15 notice 📦  @lehelkovach/cpms-core@0.1.0
+16 notice Tarball Contents
+17 notice 166B README.md
+17 notice 774B package.json
+17 notice 275B src/dsl/types.js
+17 notice 800B src/engine/decision.js
+17 notice 2.0kB src/engine/evaluators.js
+17 notice 2.1kB src/engine/explain.js
+17 notice 492B src/engine/match.js
+17 notice 4.1kB src/engine/patternMatch.js
+17 notice 850B src/engine/scoring.js
+17 notice 345B src/index.js
+17 notice 2.9kB src/schema/compiler.js
+17 notice 2.9kB src/schema/compiler.ts
+17 notice 1.9kB src/schema/generator.js
+17 notice 2.3kB src/schema/generator.ts
+17 notice 4.9kB src/schema/language.js
+18 notice Tarball Details
+19 notice name: @lehelkovach/cpms-core
+20 notice version: 0.1.0
+21 notice filename: lehelkovach-cpms-core-0.1.0.tgz
+22 notice package size: 7.2 kB
+23 notice unpacked size: 26.8 kB
+24 notice shasum: 1ea61d645d41395b3440d1c729bab68a3b45d4af
+25 notice integrity: sha512-cgfrYiwMwcWqR[...]u72pDquI1f43w==
+26 notice total files: 15
+27 notice
+28 verbose cwd /home/johncofax/Dev/git-source/cpms/packages/core
+29 verbose os Linux 6.14.0-37-generic
+30 verbose node v20.19.6
+31 verbose npm  v10.8.2
+32 verbose exit 0
+33 info ok

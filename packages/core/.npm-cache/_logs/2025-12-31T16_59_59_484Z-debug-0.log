@@ -1,0 +1,70 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.6
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/johncofax/Dev/git-source/cpms/packages/core/.npmrc
+5 silly config load:file:/tmp/tmp.qs2566EfPI
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm publish
+8 verbose argv "publish" "--access" "public"
+9 verbose logfile logs-max:10 dir:/home/johncofax/Dev/git-source/cpms/packages/core/.npm-cache/_logs/2025-12-31T16_59_59_484Z-
+10 verbose logfile /home/johncofax/Dev/git-source/cpms/packages/core/.npm-cache/_logs/2025-12-31T16_59_59_484Z-debug-0.log
+11 verbose publish [ '.' ]
+12 silly logfile done cleaning log files
+13 silly packumentCache heap:1987575808 maxSize:496893952 maxEntrySize:248446976
+14 warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+15 warn publish errors corrected:
+15 warn publish "repository.url" was normalized to "git+https://github.com/lehelkovach/cpms.git"
+16 notice
+17 notice 📦  @lehelkovach/cpms-core@0.1.0
+18 notice Tarball Contents
+19 notice 1.6kB README.md
+19 notice 774B package.json
+19 notice 275B src/dsl/types.js
+19 notice 800B src/engine/decision.js
+19 notice 2.0kB src/engine/evaluators.js
+19 notice 2.1kB src/engine/explain.js
+19 notice 492B src/engine/match.js
+19 notice 4.1kB src/engine/patternMatch.js
+19 notice 850B src/engine/scoring.js
+19 notice 345B src/index.js
+19 notice 2.9kB src/schema/compiler.js
+19 notice 2.9kB src/schema/compiler.ts
+19 notice 1.9kB src/schema/generator.js
+19 notice 2.3kB src/schema/generator.ts
+19 notice 4.9kB src/schema/language.js
+20 notice Tarball Details
+21 notice name: @lehelkovach/cpms-core
+22 notice version: 0.1.0
+23 notice filename: lehelkovach-cpms-core-0.1.0.tgz
+24 notice package size: 7.6 kB
+25 notice unpacked size: 28.3 kB
+26 notice shasum: 2421f402b3880c8d00d4c1ec8850d8e9a2595ead
+27 notice integrity: sha512-o41klv0j88Pxt[...]rPjuA7rzlV1Lw==
+28 notice total files: 15
+29 notice
+30 notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+31 http fetch PUT 403 https://registry.npmjs.org/@lehelkovach%2fcpms-core 440ms
+32 verbose stack HttpErrorGeneral: 403 Forbidden - PUT https://registry.npmjs.org/@lehelkovach%2fcpms-core - Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages.
+32 verbose stack     at /usr/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/check-response.js:95:15
+32 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+32 verbose stack     at async publish (/usr/lib/node_modules/npm/node_modules/libnpmpublish/lib/publish.js:53:15)
+32 verbose stack     at async otplease (/usr/lib/node_modules/npm/lib/utils/auth.js:8:12)
+32 verbose stack     at async #publish (/usr/lib/node_modules/npm/lib/commands/publish.js:157:7)
+32 verbose stack     at async Publish.exec (/usr/lib/node_modules/npm/lib/commands/publish.js:46:5)
+32 verbose stack     at async Npm.exec (/usr/lib/node_modules/npm/lib/npm.js:207:9)
+32 verbose stack     at async module.exports (/usr/lib/node_modules/npm/lib/cli/entry.js:74:5)
+33 verbose statusCode 403
+34 verbose pkgid @lehelkovach/cpms-core@0.1.0
+35 error code E403
+36 error 403 403 Forbidden - PUT https://registry.npmjs.org/@lehelkovach%2fcpms-core - Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages.
+37 error 403 In most cases, you or one of your dependencies are requesting
+37 error 403 a package version that is forbidden by your security policy, or
+37 error 403 on a server you do not have access to.
+38 verbose cwd /home/johncofax/Dev/git-source/cpms/packages/core
+39 verbose os Linux 6.14.0-37-generic
+40 verbose node v20.19.6
+41 verbose npm  v10.8.2
+42 verbose exit 1
+43 verbose code 1
+44 error A complete log of this run can be found in: /home/johncofax/Dev/git-source/cpms/packages/core/.npm-cache/_logs/2025-12-31T16_59_59_484Z-debug-0.log

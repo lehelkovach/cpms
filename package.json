@@ -10,5 +10,8 @@
     "dev:api": "pnpm -C packages/server-node dev",
     "test:e2e": "pnpm -C tools/e2e e2e",
     "gate": "pnpm test && pnpm test:e2e && pnpm pack:check"
+  },
+  "dependencies": {
+    "pnpm": "^10.27.0"
   }
 }

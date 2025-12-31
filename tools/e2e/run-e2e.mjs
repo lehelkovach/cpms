@@ -56,6 +56,9 @@ async function main() {
     const ok = await waitForHealth(baseUrl);
     if (!ok) throw new Error("API did not become healthy");
 
+    const language = await request(`${baseUrl}/cpms/schema/concepts/language`);
+    if (language.statusCode !== 200) throw new Error("schema language failed");
+
     const payloadPath = resolve(repoRoot, "examples/requests/login.pattern.request.concrete.json");
     const payload = JSON.parse(readFileSync(payloadPath, "utf-8"));
 
@@ -72,7 +75,24 @@ async function main() {
     if (assigned["concept:email@1.0.0"] !== "cand_email") throw new Error("email assignment incorrect");
     if (assigned["concept:password@1.0.0"] !== "cand_pass") throw new Error("password assignment incorrect");
 
-    console.log("E2E OK:", assigned);
+    const templateRes = await request(`${baseUrl}/cpms/schema/concepts/template`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ labels: ["concept:e2e@1.0.0"], prototype_of: "type:e2e" })
+    });
+    if (templateRes.statusCode !== 200) throw new Error("concept template endpoint failed");
+    const templateBody = await templateRes.body.json();
+
+    const persistRes = await request(`${baseUrl}/cpms/schema/concepts/persist`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ concept: templateBody.template })
+    });
+    if (persistRes.statusCode !== 200) throw new Error(`concept persist failed: ${persistRes.statusCode}`);
+    const persistBody = await persistRes.body.json();
+    if (!persistBody.ok || !persistBody.graph?.ok) throw new Error("concept persist did not propagate to graph store");
+
+    console.log("E2E OK:", assigned, "persisted", persistBody.concept.uuid);
   } finally {
     await stop();
   }

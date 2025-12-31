@@ -1,0 +1,38 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.6
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/johncofax/Dev/git-source/cpms/packages/server-node/.npmrc
+5 silly config load:file:/home/johncofax/.npmrc
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm pack
+8 verbose argv "pack" "--dry-run"
+9 verbose logfile logs-max:10 dir:/home/johncofax/Dev/git-source/cpms/.npm-cache/_logs/2025-12-31T16_49_57_416Z-
+10 verbose logfile /home/johncofax/Dev/git-source/cpms/.npm-cache/_logs/2025-12-31T16_49_57_416Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:1987575808 maxSize:496893952 maxEntrySize:248446976
+13 notice
+14 notice 📦  @lehelkovach/cpms-server-node@0.1.0
+15 notice Tarball Contents
+16 notice 1.3kB README.md
+16 notice 1.0kB package.json
+16 notice 4.7kB src/app.js
+16 notice 2.3kB src/graphStore.js
+16 notice 224B src/server.js
+16 notice 685B src/store.js
+17 notice Tarball Details
+18 notice name: @lehelkovach/cpms-server-node
+19 notice version: 0.1.0
+20 notice filename: lehelkovach-cpms-server-node-0.1.0.tgz
+21 notice package size: 3.6 kB
+22 notice unpacked size: 10.2 kB
+23 notice shasum: 991fc22976e70aa494fc74ab0a753f84080f6fd8
+24 notice integrity: sha512-5lgNLbkZm+iGe[...]A6tCLmWMu+rew==
+25 notice total files: 6
+26 notice
+27 verbose cwd /home/johncofax/Dev/git-source/cpms/packages/server-node
+28 verbose os Linux 6.14.0-37-generic
+29 verbose node v20.19.6
+30 verbose npm  v10.8.2
+31 verbose exit 0
+32 info ok
