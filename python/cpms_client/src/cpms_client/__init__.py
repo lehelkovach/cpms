@@ -61,3 +61,32 @@ class CpmsClient:
 
     def activate(self, kind, uuid):
         return self._request("POST", "/cpms/activate", {"kind": kind, "uuid": uuid})
+
+    def detect_form(self, html, screenshot_path=None, screenshot=None, url=None, dom_snapshot=None, observation=None):
+        """
+        High-level form detection endpoint that accepts HTML + screenshot and returns
+        pattern data with detected fields (email, password, submit, etc.).
+        
+        Args:
+            html: HTML content of the page
+            screenshot_path: Optional path to screenshot image file
+            screenshot: Optional base64-encoded screenshot (alternative to screenshot_path)
+            url: Optional URL of the page (for metadata)
+            dom_snapshot: Optional Playwright/Selenium DOM snapshot
+            observation: Optional pre-built observation (if provided, other params ignored)
+            
+        Returns:
+            Dict with form_type, fields (list of field dicts), confidence, and pattern_id
+        """
+        payload = {"html": html}
+        if screenshot_path:
+            payload["screenshot_path"] = screenshot_path
+        if screenshot:
+            payload["screenshot"] = screenshot
+        if url:
+            payload["url"] = url
+        if dom_snapshot:
+            payload["dom_snapshot"] = dom_snapshot
+        if observation:
+            payload["observation"] = observation
+        return self._request("POST", "/cpms/detect_form", payload)
