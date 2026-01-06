@@ -2,7 +2,90 @@
 
 Author: **Lehel Kovach** (GitHub: `@lehelkovach`)
 
-CPMS is an **open-source** library + API for representing and matching **fuzzy “concept prototypes”** against observations (DOM/UI data), and composing those concepts into higher-level **patterns** (e.g., *login form*, *payment form*).
+CPMS is an **open-source** library + API for representing and matching **fuzzy "concept prototypes"** against observations (DOM/UI data), and composing those concepts into higher-level **patterns** (e.g., *login form*, *payment form*).
+
+---
+
+## Current Development Status
+
+**Version**: 0.1.2+ (Python client)  
+**Phase**: Beta - Core API functional, enhancements in progress  
+**Last Updated**: 2024-12-19  
+**Status**: ✅ Ready for osl-agent-prototype integration
+
+### ✅ Implemented Features
+
+#### API Endpoints
+- ✅ `POST /cpms/match` - Match concept against observation
+- ✅ `POST /cpms/match_explain` - Match with explanation trace
+- ✅ `POST /cpms/match_pattern` - Match pattern (login, payment, etc.)
+- ✅ `POST /cpms/detect_form` - **High-level form detection** (HTML + screenshot → pattern data)
+- ✅ `GET /cpms/schema/concepts/language` - Schema language documentation
+- ✅ `POST /cpms/schema/concepts/template` - Concept template generation
+- ✅ `POST /cpms/schema/concepts/persist` - Persist concept
+- ✅ `POST /cpms/concepts/draft` - Draft concept
+- ✅ `POST /cpms/patterns/draft` - Draft pattern
+- ✅ `POST /cpms/activate` - Activate concept/pattern
+
+#### Python Client (cpms-client)
+- ✅ `CpmsClient.match(concept, observation)` - Concept matching
+- ✅ `CpmsClient.match_explain(concept, observation)` - Match with explanation
+- ✅ `CpmsClient.match_pattern(pattern, concepts, observation)` - Pattern matching
+- ✅ `CpmsClient.detect_form(html, screenshot_path=None, ...)` - **Form detection** (matches agent interface)
+- ✅ `CpmsClient.schema_language()` - Get schema language docs
+- ✅ `CpmsClient.concept_template(intent)` - Generate concept template
+- ✅ `CpmsClient.persist_concept(concept)` - Persist concept
+- ✅ `CpmsClient.draft_concept(intent)` - Draft concept
+- ✅ `CpmsClient.draft_pattern(intent)` - Draft pattern
+- ✅ `CpmsClient.activate(kind, uuid)` - Activate object
+
+#### Core Functionality
+- ✅ Concept matching with fuzzy signals
+- ✅ Pattern matching (login forms)
+- ✅ Observation building from HTML
+- ✅ Signal extraction (DOM attributes, text, roles)
+- ✅ Confidence scoring and explanation traces
+- ✅ Default login pattern/concepts included
+
+### ⏳ In Progress
+
+- Pattern storage/retrieval API (CRUD operations)
+- Payment form pattern support
+- Improved HTML parsing (proper DOM parser)
+- Visual analysis using screenshots
+
+### 📋 Planned Features
+
+#### Short-term
+- Pattern listing endpoint (`GET /api/patterns`)
+- Pattern versioning
+- Pattern update/delete endpoints
+- Payment form patterns
+- Better XPath generation
+
+#### Medium-term
+- Visual analysis from screenshots
+- Pattern learning from successful matches
+- Pattern generalization
+- ArangoDB persistence adapter
+- Vector retrieval endpoints (embeddings)
+
+#### Long-term
+- Procedures as directed graphs (task workflows)
+- Dual-channel matching (DOM + vision)
+- Larger regression suite of UI variants
+- Pattern taxonomy building
+
+### 🔗 Integrations
+
+#### osl-agent-prototype
+- **Status**: ✅ Ready for integration
+- **Version**: Requires cpms-client >=0.1.2
+- **Features Used**: `detect_form()`, pattern matching
+- **Integration Docs**: See `INTEGRATION_READY.md` and `READY_FOR_AGENT_INTEGRATION.md`
+- **Issues**: None known
+
+---
 
 It’s built to be the **memory + schema + matching** component used by AI agents and automation systems. A separate “agent” project (Playwright/Selenium + OpenAI tool-calling) can use CPMS to:
 - retrieve prototypes via vector search (RAG)
