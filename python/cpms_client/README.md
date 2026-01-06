@@ -39,6 +39,7 @@ print(result["result"]["best"])
 - `match(concept, observation)`
 - `match_explain(concept, observation)`
 - `match_pattern(pattern, concepts, observation)`
+- `detect_form(html, screenshot_path=None, screenshot=None, url=None, dom_snapshot=None, observation=None)` - High-level form detection endpoint
 - `schema_language()`
 - `concept_template(intent=None)`
 - `persist_concept(concept)`

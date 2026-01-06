@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cpms_client"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python wrapper for the CPMS HTTP API"
 authors = [{ name = "Lehel Kovach" }]
 readme = "README.md"
@@ -19,6 +19,7 @@ Repository = "https://github.com/lehelkovach/cpms"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
