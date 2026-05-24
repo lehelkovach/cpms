@@ -50,6 +50,25 @@ class ClientTests(unittest.TestCase):
         self.assertIn("HTTP 400", str(ctx.exception))
         self.assertIn("boom", str(ctx.exception))
 
+    def test_detect_form_sends_html_and_optional_snapshot(self):
+        captured = {}
+
+        def opener(req, timeout=None):
+            captured["url"] = req.full_url
+            captured["method"] = req.get_method()
+            captured["body"] = json.loads(req.data.decode("utf-8"))
+            return FakeResponse({"form_type": "login", "fields": []})
+
+        client = CpmsClient(base_url="http://localhost:9999", opener=opener)
+        result = client.detect_form("<form></form>", url="https://example.test", dom_snapshot={"role": "window"})
+
+        self.assertTrue(captured["url"].endswith("/cpms/detect_form"))
+        self.assertEqual(captured["method"], "POST")
+        self.assertEqual(captured["body"]["html"], "<form></form>")
+        self.assertEqual(captured["body"]["url"], "https://example.test")
+        self.assertEqual(captured["body"]["dom_snapshot"]["role"], "window")
+        self.assertEqual(result["form_type"], "login")
+
 
 if __name__ == "__main__":
     unittest.main()

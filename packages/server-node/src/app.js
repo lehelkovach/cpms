@@ -18,7 +18,7 @@ import path from "node:path";
 import os from "node:os";
 import { makeStore } from "./store.js";
 import { makeGraphStore } from "./graphStore.js";
-import { buildObservationFromHtml, loadDefaultLoginPattern } from "./observationBuilder.js";
+import { buildObservationFromHtml, loadDefaultPatterns } from "./observationBuilder.js";
 
 /**
  * Build a Fastify app so it can be used by both the CLI server entrypoint and tests.
@@ -123,7 +123,7 @@ export async function buildApp(options = {}) {
 
   // --- High-level form detection endpoint for agent integration ---
   const DetectFormReq = z.object({
-    html: z.string(),
+    html: z.string().optional(),
     screenshot_path: z.string().optional(),
     screenshot: z.string().optional(), // base64 encoded
     url: z.string().optional(),
@@ -134,28 +134,25 @@ export async function buildApp(options = {}) {
   app.post("/cpms/detect_form", async (req, reply) => {
     const parsed = DetectFormReq.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.format() });
-    
+
     const { html, screenshot_path, screenshot, url, dom_snapshot, observation: providedObservation } = parsed.data;
-    
+    if (!html && !providedObservation && !dom_snapshot) {
+      return reply.code(400).send({ error: "html, observation, or dom_snapshot is required" });
+    }
+
     try {
-      // Build observation from HTML + screenshot
       let observation = providedObservation;
       if (!observation) {
-        // Use screenshot_path if provided, otherwise try screenshot (base64)
         const screenshotPath = screenshot_path || (screenshot ? writeTempScreenshot(screenshot) : null);
-        observation = buildObservationFromHtml(html, screenshotPath, url, dom_snapshot);
+        observation = buildObservationFromHtml(html ?? "", screenshotPath, url, dom_snapshot);
       }
-      
-      // Load default login pattern and concepts
-      const { pattern, concepts } = loadDefaultLoginPattern();
-      
-      // Match pattern
-      const matchResult = matchPatternGreedyRepair(pattern, concepts, observation);
-      
-      // Transform to agent-expected format
-      const response = transformMatchResultToAgentFormat(matchResult, pattern, concepts, observation);
-      
-      return response;
+
+      const detections = loadDefaultPatterns().map(({ pattern, concepts }) => {
+        const matchResult = matchPatternGreedyRepair(pattern, concepts, observation);
+        return transformMatchResultToAgentFormat(matchResult, pattern, concepts, observation);
+      });
+
+      return selectBestDetection(detections);
     } catch (error) {
       return reply.code(500).send({ error: error.message, stack: error.stack });
     }
@@ -170,37 +167,27 @@ export async function buildApp(options = {}) {
 function transformMatchResultToAgentFormat(matchResult, pattern, concepts, observation) {
   const conceptMap = new Map(concepts.map(c => [c.concept_id, c]));
   const candidateMap = new Map(observation.candidates.map(c => [c.candidate_id, c]));
-  
+  const traceByConcept = new Map((matchResult.trace?.rankings ?? []).map(r => [r.concept_id, r]));
+
   const fields = [];
-  let overallConfidence = 1.0;
-  
-  // Map assigned concepts to fields
+  const confidences = [];
+
   for (const [conceptId, candidateId] of Object.entries(matchResult.assigned || {})) {
     const concept = conceptMap.get(conceptId);
     const candidate = candidateMap.get(candidateId);
-    
     if (!concept || !candidate) continue;
-    
-    // Determine field type from concept
-    let fieldType = "unknown";
-    if (concept.concept_id.includes("email")) fieldType = "email";
-    else if (concept.concept_id.includes("password")) fieldType = "password";
-    else if (concept.concept_id.includes("submit")) fieldType = "submit";
-    
-    // Build selector from candidate DOM attributes
+
     const selector = buildSelector(candidate);
     const xpath = buildXPath(candidate, observation);
-    
-    // Get confidence from trace
-    const traceEntry = matchResult.trace?.rankings?.find(r => r.concept_id === conceptId);
+    const traceEntry = traceByConcept.get(conceptId);
     const confidence = traceEntry ? (traceEntry.bestP || 0.5) : 0.5;
-    overallConfidence = Math.min(overallConfidence, confidence);
-    
+    confidences.push(confidence);
+
     fields.push({
-      type: fieldType,
-      selector: selector,
-      xpath: xpath,
-      confidence: confidence,
+      type: inferFieldType(concept),
+      selector,
+      xpath,
+      confidence,
       signals: {
         concept_id: conceptId,
         candidate_id: candidateId,
@@ -208,21 +195,67 @@ function transformMatchResultToAgentFormat(matchResult, pattern, concepts, obser
       }
     });
   }
-  
-  // Determine form type
-  let formType = "unknown";
-  const hasEmail = fields.some(f => f.type === "email");
-  const hasPassword = fields.some(f => f.type === "password");
-  if (hasEmail && hasPassword) formType = "login";
-  
+
+  const requiredConcepts = getRequiredConceptIds(pattern);
+  const requiredAssigned = requiredConcepts.filter(conceptId => matchResult.assigned?.[conceptId]);
+  const requiredCompleteness = requiredConcepts.length ? requiredAssigned.length / requiredConcepts.length : 1;
+  const assignedCount = Object.keys(matchResult.assigned || {}).length;
+  const patternCompleteness = pattern.includes?.length ? assignedCount / pattern.includes.length : 0;
+  const overallConfidence = confidences.length ? Math.min(...confidences) : 0;
+  const score = (requiredCompleteness * 0.7) + (patternCompleteness * 0.2) + (overallConfidence * 0.1);
+
   return {
-    form_type: formType,
-    fields: fields,
+    form_type: requiredCompleteness === 1 ? inferFormType(pattern) : "unknown",
+    fields,
     confidence: overallConfidence,
+    score,
     pattern_id: pattern.pattern_id,
     assigned: matchResult.assigned,
-    unassigned: matchResult.unassigned || []
+    unassigned: matchResult.unassigned || [],
+    required: {
+      assigned: requiredAssigned,
+      missing: requiredConcepts.filter(conceptId => !matchResult.assigned?.[conceptId])
+    }
   };
+}
+
+function selectBestDetection(detections) {
+  const sorted = [...detections].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.confidence - a.confidence;
+  });
+  return sorted[0] ?? {
+    form_type: "unknown",
+    fields: [],
+    confidence: 0,
+    score: 0,
+    pattern_id: null,
+    assigned: {},
+    unassigned: []
+  };
+}
+
+function getRequiredConceptIds(pattern) {
+  const required = (pattern.constraints ?? [])
+    .filter(constraint => constraint.type === "required_concepts")
+    .flatMap(constraint => constraint.params?.ids ?? []);
+  return required.length ? required : (pattern.includes ?? []);
+}
+
+function inferFormType(pattern) {
+  return pattern.pattern_id?.match(/^pattern:([^@]+)/)?.[1] ?? "unknown";
+}
+
+function inferFieldType(concept) {
+  const source = String(concept.concept_type || "") + " " + String(concept.concept_id || "");
+  if (source.includes("submit")) return "submit";
+  if (source.includes("card_name") || source.includes("cardholder")) return "card_name";
+  if (source.includes("card_number")) return "card_number";
+  if (source.includes("card_expiry") || source.includes("expiry")) return "card_expiry";
+  if (source.includes("card_cvv") || source.includes("cvv")) return "card_cvv";
+  if (source.includes("email")) return "email";
+  if (source.includes("password")) return "password";
+  return "unknown";
 }
 
 /**
@@ -230,22 +263,28 @@ function transformMatchResultToAgentFormat(matchResult, pattern, concepts, obser
  */
 function buildSelector(candidate) {
   const attrs = candidate.dom?.attrs || {};
-  const selectors = [];
+  const tag = candidate.dom?.tag || "input";
   
   if (attrs.id) {
-    selectors.push(`#${attrs.id}`);
+    return `#${cssEscapeIdent(attrs.id)}`;
   }
   if (attrs.name) {
-    selectors.push(`[name="${attrs.name}"]`);
+    return `${tag}[name="${cssEscapeString(attrs.name)}"]`;
+  }
+  if (attrs.autocomplete) {
+    return `${tag}[autocomplete="${cssEscapeString(attrs.autocomplete)}"]`;
+  }
+  if (attrs["aria-label"]) {
+    return `${tag}[aria-label="${cssEscapeString(attrs["aria-label"])}"]`;
   }
   if (attrs.type) {
-    selectors.push(`[type="${attrs.type}"]`);
+    return `${tag}[type="${cssEscapeString(attrs.type)}"]`;
   }
-  if (attrs.role) {
-    selectors.push(`[role="${attrs.role}"]`);
+  if (candidate.dom?.role) {
+    return `[role="${cssEscapeString(candidate.dom.role)}"]`;
   }
   
-  return selectors.join(", ") || "input, button";
+  return tag === "button" ? "button" : "input, textarea, select, button";
 }
 
 /**
@@ -260,7 +299,18 @@ function buildXPath(candidate, observation) {
   if (attrs.name) {
     return `//*[@name="${attrs.name}"]`;
   }
+  if (attrs["aria-label"]) {
+    return `//*[@aria-label="${attrs["aria-label"]}"]`;
+  }
   return "//input | //button";
+}
+
+function cssEscapeIdent(value) {
+  return String(value).replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
+}
+
+function cssEscapeString(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 /**

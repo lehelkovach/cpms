@@ -22,9 +22,10 @@
   },
   "dependencies": {
     "@lehelkovach/cpms-core": "workspace:^0.1.0",
-    "fastify": "^5.2.0",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.2",
+    "cheerio": "^1.2.0",
+    "fastify": "^5.2.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

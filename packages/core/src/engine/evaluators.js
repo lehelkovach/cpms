@@ -23,10 +23,11 @@ REGISTRY.register("dom.text_contains_any", (cand, { terms }) => {
     cand?.dom?.label_text,
     cand?.dom?.placeholder,
     cand?.dom?.aria_label,
+    cand?.dom?.text,
     cand?.dom?.nearby_text,
     cand?.dom?.attrs?.name,
     cand?.dom?.attrs?.id
-  ].filter(Boolean).join(" ").toLowerCase();
+  ].flatMap((value) => Array.isArray(value) ? value : [value]).filter(Boolean).join(" ").toLowerCase();
   return (terms ?? []).some(t => hay.includes(String(t).toLowerCase())) ? 1 : 0;
 });
 

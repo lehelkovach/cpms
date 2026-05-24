@@ -75,6 +75,26 @@ async function main() {
     if (assigned["concept:email@1.0.0"] !== "cand_email") throw new Error("email assignment incorrect");
     if (assigned["concept:password@1.0.0"] !== "cand_pass") throw new Error("password assignment incorrect");
 
+    const detectRes = await request(`${baseUrl}/cpms/detect_form`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        html: `
+          <form>
+            <label for="login-email">Email</label>
+            <input id="login-email" autocomplete="email" />
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" />
+            <input type="submit" value="Sign in" />
+          </form>
+        `
+      })
+    });
+    if (detectRes.statusCode !== 200) throw new Error(`detect_form failed: ${detectRes.statusCode}`);
+    const detectBody = await detectRes.body.json();
+    if (detectBody.form_type !== "login") throw new Error(`detect_form classified ${detectBody.form_type}`);
+    if (!detectBody.fields?.some(field => field.type === "email")) throw new Error("detect_form missing email field");
+
     const templateRes = await request(`${baseUrl}/cpms/schema/concepts/template`, {
       method: "POST",
       headers: { "content-type": "application/json" },

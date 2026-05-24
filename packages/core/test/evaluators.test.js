@@ -24,3 +24,12 @@ describe("dom.type_is evaluator", () => {
     expect(result).toBe(0);
   });
 });
+
+describe("dom.text_contains_any evaluator", () => {
+  const evalText = (candidate, params) => REGISTRY.eval("dom.text_contains_any", candidate, params);
+
+  it("matches button text and array nearby text", () => {
+    expect(evalText({ dom: { text: "Complete purchase" } }, { terms: ["purchase"] })).toBe(1);
+    expect(evalText({ dom: { nearby_text: ["Name on card", "Card number"] } }, { terms: ["card number"] })).toBe(1);
+  });
+});

@@ -101,4 +101,84 @@ describe("server-node API", () => {
     expect(payload.result.assigned[emailConcept.concept_id]).toBe("cand_email");
     expect(payload.result.assigned[passwordConcept.concept_id]).toBe("cand_pass");
   });
+
+  it("detects a varied login form from HTML", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/cpms/detect_form",
+      payload: {
+        html: `
+          <main>
+            <label for="account">Account email</label>
+            <input id="account" name="identifier" type="email" autocomplete="email" />
+            <label>Password <input name="pw" type="password" autocomplete="current-password" /></label>
+            <input type="submit" value="Continue" />
+          </main>
+        `
+      }
+    });
+
+    expect(res.statusCode).toBe(200);
+    const payload = res.json();
+    expect(payload.form_type).toBe("login");
+    expect(payload.pattern_id).toBe("pattern:login@1.0.0");
+    expect(payload.fields.map(field => field.type)).toEqual(expect.arrayContaining(["email", "password", "submit"]));
+    expect(payload.fields.find(field => field.type === "email").selector).toBe("#account");
+  });
+
+  it("detects payment forms by comparing built-in patterns", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/cpms/detect_form",
+      payload: {
+        html: `
+          <form>
+            <label for="cc-name">Name on card</label>
+            <input id="cc-name" autocomplete="cc-name" />
+            <label for="cc-number">Card number</label>
+            <input id="cc-number" inputmode="numeric" autocomplete="cc-number" />
+            <label for="cc-exp">Expiration date</label>
+            <input id="cc-exp" autocomplete="cc-exp" />
+            <label for="cc-csc">CVV</label>
+            <input id="cc-csc" autocomplete="cc-csc" />
+            <button type="submit">Complete purchase</button>
+          </form>
+        `
+      }
+    });
+
+    expect(res.statusCode).toBe(200);
+    const payload = res.json();
+    expect(payload.form_type).toBe("payment");
+    expect(payload.pattern_id).toBe("pattern:payment@1.0.0");
+    expect(payload.fields.map(field => field.type)).toEqual(expect.arrayContaining([
+      "card_name",
+      "card_number",
+      "card_expiry",
+      "card_cvv",
+      "submit"
+    ]));
+  });
+
+  it("detects app-style forms from dom_snapshot without HTML", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/cpms/detect_form",
+      payload: {
+        dom_snapshot: {
+          role: "window",
+          children: [
+            { role: "textbox", name: "Email", attrs: { autocomplete: "email" } },
+            { role: "textbox", name: "Password", attrs: { type: "password", autocomplete: "current-password" } },
+            { role: "button", name: "Sign in" }
+          ]
+        }
+      }
+    });
+
+    expect(res.statusCode).toBe(200);
+    const payload = res.json();
+    expect(payload.form_type).toBe("login");
+    expect(payload.fields.map(field => field.type)).toEqual(expect.arrayContaining(["email", "password", "submit"]));
+  });
 });

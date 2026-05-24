@@ -7,12 +7,21 @@ Fastify API for CPMS. Exposes the concept/pattern matching endpoints along with 
 - `POST /cpms/match` – winner-take-all decision for a single concept.
 - `POST /cpms/match_explain` – match plus explain trace.
 - `POST /cpms/match_pattern` – greedy + repair assignment for a pattern.
+- `POST /cpms/detect_form` – classify HTML/app snapshots against built-in form patterns and return agent-ready fields.
 - `GET /cpms/schema/concepts/language` – schema description + starter template.
 - `POST /cpms/schema/concepts/template` – build a template from intent overrides.
 - `POST /cpms/schema/concepts/persist` – lint + compile + persist a concept draft.
 - `POST /cpms/concepts/draft` / `POST /cpms/patterns/draft` – helper endpoints for tool-calling.
 
 Swagger UI is served at `/docs`.
+
+## Form detection debug
+```bash
+pnpm dev:api
+pnpm debug:detect-form -- --html-file ./fixture.html
+```
+
+See `docs/FORM_CLASSIFICATION_READINESS.md` for the current classification scope, coverage, and extension plan.
 
 ## Install
 ```bash
