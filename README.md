@@ -100,6 +100,14 @@ It’s built to be the **memory + schema + matching** component used by AI agent
 
 ## Documentation
 
+- **Agent operating prompt/runbook**: startup context, release workflow, and development log for coding agents
+  - [.AGENT/agent.md](.AGENT/agent.md)
+  - [.AGENT/.agent-template.md](.AGENT/.agent-template.md)
+  - [.AGENT/agent-run.md](.AGENT/agent-run.md)
+  - [.AGENT/agent-run-once.md](.AGENT/agent-run-once.md)
+  - [.AGENT/agent-action-log.md](.AGENT/agent-action-log.md)
+- **Form classification readiness**: current `/cpms/detect_form` scope, coverage, debug client, and extension plan
+  - [docs/FORM_CLASSIFICATION_READINESS.md](docs/FORM_CLASSIFICATION_READINESS.md)
 - **Schema language (JSON)**: how to define Concepts, Patterns, and (planned) Procedures  
   - [docs/SCHEMA_LANGUAGE.md](docs/SCHEMA_LANGUAGE.md)
 - **Observation model**: how to represent DOM + vision candidates for matching  

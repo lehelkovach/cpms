@@ -9,6 +9,7 @@
     "pack:check": "pnpm -r pack:check",
     "dev:api": "pnpm -C packages/server-node dev",
     "debug:detect-form": "node tools/debug/detect-form.mjs",
+    "agent:smoke": "python3 .AGENT/tests/agent_architecture_smoke.py",
     "test:e2e": "pnpm -C tools/e2e e2e",
     "gate": "pnpm test && pnpm test:e2e && pnpm pack:check"
   },
