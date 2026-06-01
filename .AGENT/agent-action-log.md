@@ -21,10 +21,11 @@ verified, and what remains.
 	   repository mission, agent-pivot boundary, branch/release workflow, verification
 	   commands, form-classification context, and action-log usage.
 7) Verification
-	a) Pending: run `.AGENT` smoke, CPMS gate, Python client tests, and release-branch
-	   verification.
+	a) Passed `pnpm agent:smoke`, `pnpm gate`, and
+	   `PYTHONPATH=python/cpms_client/src python3 -m unittest discover -s python/cpms_client/tests -v`
+	   on `dev` and again on `main`.
 8) Follow-ups
-	a) Keep this log updated as the branch is merged through `dev`, `main`, and release tag.
+	a) Release tag selected: `v0.1.3` as the next repo-level agent-pivot readiness tag.
 
 ## 2026-05-24 - Improve form classification readiness
 
