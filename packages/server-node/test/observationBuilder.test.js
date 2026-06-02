@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildObservationFromHtml,
+  buildObservationFromMobileTree,
   loadDefaultLoginPattern,
   loadDefaultPatterns
 } from "../src/observationBuilder.js";
@@ -50,5 +51,21 @@ describe("observationBuilder", () => {
       "pattern:login@1.0.0",
       "pattern:payment@1.0.0"
     ]);
+  });
+
+  it("normalizes mobile tree nodes into mobile candidates", () => {
+    const observation = buildObservationFromMobileTree({
+      page_id: "mobile:login",
+      children: [
+        { resource_id: "app:id/user", class: "android.widget.EditText", text: "Email", input_type: "textEmailAddress" },
+        { resource_id: "app:id/login", class: "android.widget.Button", text: "Sign in", clickable: true }
+      ]
+    });
+
+    expect(observation.source).toBe("mobile_tree");
+    expect(observation.candidates).toHaveLength(2);
+    expect(observation.candidates[0].mobile.resource_id).toBe("app:id/user");
+    expect(observation.candidates[0].a11y.role).toBe("textbox");
+    expect(observation.candidates[1].a11y.role).toBe("button");
   });
 });

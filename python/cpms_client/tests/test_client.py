@@ -69,6 +69,51 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(captured["body"]["dom_snapshot"]["role"], "window")
         self.assertEqual(result["form_type"], "login")
 
+    def test_concept_crud_methods_encode_ids_and_payloads(self):
+        calls = []
+
+        def opener(req, timeout=None):
+            body = json.loads(req.data.decode("utf-8")) if req.data else None
+            calls.append((req.get_method(), req.full_url, body))
+            return FakeResponse({"ok": True, "concept": body.get("concept") if body else {"concept_id": "concept:email@1.0.0"}})
+
+        client = CpmsClient(base_url="http://localhost:9999", opener=opener)
+        client.list_concepts()
+        client.get_concept("concept:email@1.0.0")
+        client.create_concept({"concept_id": "concept:email@1.0.0"})
+        client.patch_concept("concept:email@1.0.0", {"meta": {"owner": "test"}})
+
+        self.assertEqual(calls[0][0], "GET")
+        self.assertTrue(calls[0][1].endswith("/cpms/concepts"))
+        self.assertTrue(calls[1][1].endswith("/cpms/concepts/concept%3Aemail%401.0.0"))
+        self.assertEqual(calls[2][2]["concept"]["concept_id"], "concept:email@1.0.0")
+        self.assertEqual(calls[3][0], "PATCH")
+        self.assertEqual(calls[3][2]["patch"]["meta"]["owner"], "test")
+
+    def test_pattern_observation_feedback_and_revision_methods(self):
+        calls = []
+
+        def opener(req, timeout=None):
+            body = json.loads(req.data.decode("utf-8")) if req.data else None
+            calls.append((req.get_method(), req.full_url, body))
+            return FakeResponse({"ok": True})
+
+        client = CpmsClient(base_url="http://localhost:9999", opener=opener)
+        client.create_pattern({"pattern_id": "pattern:login@1.0.0"})
+        client.patch_pattern("pattern:login@1.0.0", {"strategy": {"top_k": 7}})
+        client.observation_from_html("<form></form>", url="https://example.test")
+        client.observation_from_mobile_tree({"class": "android.widget.Button"}, url="app://login")
+        client.send_feedback("concept:email@1.0.0", {"type": "human_confirmed"})
+        client.promote_revision("concept", id="concept:email@1.0.0")
+
+        self.assertTrue(calls[1][1].endswith("/cpms/patterns/pattern%3Alogin%401.0.0"))
+        self.assertEqual(calls[2][1], "http://localhost:9999/cpms/observations/from_html")
+        self.assertEqual(calls[2][2]["html"], "<form></form>")
+        self.assertEqual(calls[3][2]["tree"]["class"], "android.widget.Button")
+        self.assertEqual(calls[4][2]["feedback"]["type"], "human_confirmed")
+        self.assertEqual(calls[5][2]["kind"], "concept")
+        self.assertEqual(calls[5][2]["id"], "concept:email@1.0.0")
+
 
 if __name__ == "__main__":
     unittest.main()

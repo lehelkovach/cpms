@@ -38,6 +38,20 @@ export function buildObservationFromHtml(html = "", screenshotPath = null, url =
 }
 
 /**
+ * Build CPMS observation from a static mobile/Appium-style tree.
+ * This is a contract helper only; it does not require an emulator or Appium runtime.
+ */
+export function buildObservationFromMobileTree(tree = {}, url = null) {
+  const nodes = [];
+  walkMobileTree(tree, nodes);
+  return {
+    page_id: url || tree.page_id || tree.id || `mobile:${Date.now()}`,
+    source: "mobile_tree",
+    candidates: nodes.map(normalizeMobileCandidate)
+  };
+}
+
+/**
  * Extract candidate elements from HTML.
  * Returns array of candidate objects with DOM attributes.
  */
@@ -198,6 +212,71 @@ function normalizeSnapshotCandidate(node, index) {
     },
     vision: node.vision
   };
+}
+
+function walkMobileTree(node, candidates) {
+  if (!node || typeof node !== "object") return;
+
+  const resourceId = node.resource_id ?? node.resourceId ?? node["resource-id"];
+  const className = node.class ?? node.className;
+  const contentDesc = node.content_desc ?? node.contentDescription ?? node["content-desc"];
+  const text = node.text ?? node.label ?? node.name;
+  const clickable = Boolean(node.clickable);
+  const enabled = node.enabled !== false;
+  const inputType = node.input_type ?? node.inputType;
+  const focusable = Boolean(node.focusable ?? node.focused);
+
+  const isCandidate = Boolean(
+    resourceId ||
+    contentDesc ||
+    inputType ||
+    clickable ||
+    focusable ||
+    text ||
+    String(className ?? "").match(/(EditText|Button|CheckBox|RadioButton|Spinner|TextInput)/i)
+  );
+
+  if (isCandidate) candidates.push(node);
+
+  for (const child of node.children ?? node.nodes ?? []) {
+    walkMobileTree(child, candidates);
+  }
+}
+
+function normalizeMobileCandidate(node, index) {
+  const resourceId = node.resource_id ?? node.resourceId ?? node["resource-id"] ?? null;
+  const className = node.class ?? node.className ?? null;
+  const contentDesc = node.content_desc ?? node.contentDescription ?? node["content-desc"] ?? null;
+  const text = normalizeText(node.text ?? node.label ?? node.name ?? null);
+  const inputType = node.input_type ?? node.inputType ?? null;
+  return {
+    candidate_id: node.candidate_id ?? `mobile_${index}`,
+    mobile: {
+      resource_id: resourceId,
+      class: className,
+      content_desc: contentDesc,
+      text,
+      bounds: node.bounds ?? null,
+      clickable: Boolean(node.clickable),
+      enabled: node.enabled !== false,
+      focused: Boolean(node.focused),
+      input_type: inputType
+    },
+    a11y: {
+      name: contentDesc ?? text ?? null,
+      role: inferMobileRole(className, inputType, node.clickable)
+    }
+  };
+}
+
+function inferMobileRole(className, inputType, clickable) {
+  const source = `${className ?? ""} ${inputType ?? ""}`.toLowerCase();
+  if (source.includes("edittext") || inputType) return "textbox";
+  if (source.includes("button") || clickable) return "button";
+  if (source.includes("checkbox")) return "checkbox";
+  if (source.includes("radio")) return "radio";
+  if (source.includes("spinner")) return "combobox";
+  return null;
 }
 
 function lowerCaseKeys(value) {

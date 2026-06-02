@@ -1,5 +1,34 @@
 # CPMS Release Log
 
+## Unreleased - dev testing
+
+Development focus: external-agent API polish for the next dev validation cycle.
+
+### Added
+
+- Agent-facing CRUD-style endpoints for concepts and patterns:
+  - `GET /cpms/concepts`
+  - `GET /cpms/concepts/:id`
+  - `POST /cpms/concepts`
+  - `PATCH /cpms/concepts/:id`
+  - `GET /cpms/patterns`
+  - `GET /cpms/patterns/:id`
+  - `POST /cpms/patterns`
+  - `PATCH /cpms/patterns/:id`
+- Observation adapter endpoints:
+  - `POST /cpms/observations/from_html`
+  - `POST /cpms/observations/from_mobile_tree`
+- Feedback and revision endpoints:
+  - `POST /cpms/feedback`
+  - `POST /cpms/revisions/promote`
+- Python client parity methods for the new endpoints.
+- Static mobile-tree observation normalization for Android/Appium-style view hierarchies.
+
+### Testing
+
+- Added server API tests for concept/pattern lifecycle endpoints, observation creation, feedback, and revision promotion.
+- Added Python client tests for URL encoding and request payload shapes.
+
 ## v0.2.0 - 2026-06-02
 
 Release focus: robust prototype language, login regression suite, and the memory-adapter boundary.

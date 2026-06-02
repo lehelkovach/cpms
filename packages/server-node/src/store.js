@@ -9,16 +9,32 @@ export function makeStore({ dir }) {
     fs.appendFileSync(file(kind), JSON.stringify(obj) + "\n", "utf-8");
   }
 
-  function latestByUuid(kind, uuid) {
+  function list(kind) {
     const p = file(kind);
-    if (!fs.existsSync(p)) return null;
+    if (!fs.existsSync(p)) return [];
     const lines = fs.readFileSync(p, "utf-8").trim().split("\n").filter(Boolean);
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const row = JSON.parse(lines[i]);
+    return lines.map((line) => JSON.parse(line));
+  }
+
+  function latestByUuid(kind, uuid) {
+    for (const row of [...list(kind)].reverse()) {
       if (row.uuid === uuid) return row;
     }
     return null;
   }
 
-  return { append, latestByUuid };
+  function latestById(kind, id) {
+    for (const row of [...list(kind)].reverse()) {
+      if (objectId(row, kind) === id || row.uuid === id) return row;
+    }
+    return null;
+  }
+
+  return { append, list, latestByUuid, latestById };
+}
+
+function objectId(row, kind) {
+  if (kind === "concept") return row.concept_id ?? row.labels?.[0] ?? row.uuid ?? null;
+  if (kind === "pattern") return row.pattern_id ?? row.labels?.[0] ?? row.uuid ?? null;
+  return row.id ?? row.uuid ?? null;
 }

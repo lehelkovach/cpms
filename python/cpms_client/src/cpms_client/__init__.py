@@ -2,6 +2,7 @@
 Minimal Python wrapper for the CPMS HTTP API.
 """
 from urllib import request as urlrequest, error as urlerror
+from urllib.parse import quote
 import json
 
 __all__ = ["CpmsClient"]
@@ -58,6 +59,64 @@ class CpmsClient:
 
     def draft_pattern(self, intent=None):
         return self._request("POST", "/cpms/patterns/draft", intent or {})
+
+    def list_concepts(self):
+        return self._request("GET", "/cpms/concepts")
+
+    def get_concept(self, concept_id):
+        return self._request("GET", f"/cpms/concepts/{quote(concept_id, safe='')}")
+
+    def create_concept(self, concept):
+        return self._request("POST", "/cpms/concepts", {"concept": concept})
+
+    def patch_concept(self, concept_id, patch):
+        return self._request("PATCH", f"/cpms/concepts/{quote(concept_id, safe='')}", {"patch": patch})
+
+    def list_patterns(self):
+        return self._request("GET", "/cpms/patterns")
+
+    def get_pattern(self, pattern_id):
+        return self._request("GET", f"/cpms/patterns/{quote(pattern_id, safe='')}")
+
+    def create_pattern(self, pattern):
+        return self._request("POST", "/cpms/patterns", {"pattern": pattern})
+
+    def patch_pattern(self, pattern_id, patch):
+        return self._request("PATCH", f"/cpms/patterns/{quote(pattern_id, safe='')}", {"patch": patch})
+
+    def observation_from_html(self, html=None, screenshot_path=None, screenshot=None, url=None, dom_snapshot=None):
+        payload = {}
+        if html is not None:
+            payload["html"] = html
+        if screenshot_path:
+            payload["screenshot_path"] = screenshot_path
+        if screenshot:
+            payload["screenshot"] = screenshot
+        if url:
+            payload["url"] = url
+        if dom_snapshot:
+            payload["dom_snapshot"] = dom_snapshot
+        return self._request("POST", "/cpms/observations/from_html", payload)
+
+    def observation_from_mobile_tree(self, tree, url=None):
+        payload = {"tree": tree}
+        if url:
+            payload["url"] = url
+        return self._request("POST", "/cpms/observations/from_mobile_tree", payload)
+
+    def send_feedback(self, target_id, feedback, evidence=None):
+        payload = {"target_id": target_id, "feedback": feedback}
+        if evidence is not None:
+            payload["evidence"] = evidence
+        return self._request("POST", "/cpms/feedback", payload)
+
+    def promote_revision(self, kind, id=None, uuid=None):
+        payload = {"kind": kind}
+        if id is not None:
+            payload["id"] = id
+        if uuid is not None:
+            payload["uuid"] = uuid
+        return self._request("POST", "/cpms/revisions/promote", payload)
 
     def activate(self, kind, uuid):
         return self._request("POST", "/cpms/activate", {"kind": kind, "uuid": uuid})

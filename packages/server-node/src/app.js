@@ -16,9 +16,10 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { randomUUID } from "node:crypto";
 import { makeStore } from "./store.js";
 import { makeGraphStore } from "./graphStore.js";
-import { buildObservationFromHtml, loadDefaultPatterns } from "./observationBuilder.js";
+import { buildObservationFromHtml, buildObservationFromMobileTree, loadDefaultPatterns } from "./observationBuilder.js";
 
 /**
  * Build a Fastify app so it can be used by both the CLI server entrypoint and tests.
@@ -111,6 +112,115 @@ export async function buildApp(options = {}) {
     return { ok: true, pattern };
   });
 
+  // --- Agent-facing CRUD-style endpoints ---
+  app.get("/cpms/concepts", async () => ({
+    ok: true,
+    concepts: latestRecords(storeList(store, "concept"), "concept")
+  }));
+
+  app.get("/cpms/concepts/:id", async (req, reply) => {
+    const concept = storeLatestById(store, "concept", req.params.id);
+    if (!concept) return reply.code(404).send({ ok: false, error: "concept not found" });
+    return { ok: true, concept };
+  });
+
+  app.post("/cpms/concepts", async (req, reply) => {
+    const concept = req.body?.concept ?? req.body;
+    if (!concept || typeof concept !== "object") return reply.code(400).send({ ok: false, error: "concept object required" });
+
+    const persisted = await persistConceptRecord(store, graphStore, concept);
+    if (!persisted.ok) return reply.code(400).send(persisted);
+    return persisted;
+  });
+
+  app.patch("/cpms/concepts/:id", async (req, reply) => {
+    const current = storeLatestById(store, "concept", req.params.id);
+    if (!current) return reply.code(404).send({ ok: false, error: "concept not found" });
+    const updates = req.body?.patch ?? req.body ?? {};
+    const concept = {
+      ...deepMerge(current, updates),
+      updated_at: new Date().toISOString()
+    };
+    store.append("concept", concept);
+    return { ok: true, concept };
+  });
+
+  app.get("/cpms/patterns", async () => ({
+    ok: true,
+    patterns: latestRecords(storeList(store, "pattern"), "pattern")
+  }));
+
+  app.get("/cpms/patterns/:id", async (req, reply) => {
+    const pattern = storeLatestById(store, "pattern", req.params.id);
+    if (!pattern) return reply.code(404).send({ ok: false, error: "pattern not found" });
+    return { ok: true, pattern };
+  });
+
+  app.post("/cpms/patterns", async (req, reply) => {
+    const pattern = req.body?.pattern ?? req.body;
+    if (!pattern || typeof pattern !== "object") return reply.code(400).send({ ok: false, error: "pattern object required" });
+    if (!objectId(pattern, "pattern")) return reply.code(400).send({ ok: false, error: "pattern_id, labels[0], or uuid required" });
+    const storedPattern = { ...pattern, updated_at: new Date().toISOString() };
+    store.append("pattern", storedPattern);
+    return { ok: true, pattern: storedPattern };
+  });
+
+  app.patch("/cpms/patterns/:id", async (req, reply) => {
+    const current = storeLatestById(store, "pattern", req.params.id);
+    if (!current) return reply.code(404).send({ ok: false, error: "pattern not found" });
+    const updates = req.body?.patch ?? req.body ?? {};
+    const pattern = {
+      ...deepMerge(current, updates),
+      updated_at: new Date().toISOString()
+    };
+    store.append("pattern", pattern);
+    return { ok: true, pattern };
+  });
+
+  app.post("/cpms/observations/from_html", async (req, reply) => {
+    const { html, screenshot_path, screenshot, url, dom_snapshot } = req.body ?? {};
+    if (!html && !dom_snapshot) return reply.code(400).send({ ok: false, error: "html or dom_snapshot is required" });
+    const screenshotPath = screenshot_path || (screenshot ? writeTempScreenshot(screenshot) : null);
+    return { ok: true, observation: buildObservationFromHtml(html ?? "", screenshotPath, url, dom_snapshot) };
+  });
+
+  app.post("/cpms/observations/from_mobile_tree", async (req, reply) => {
+    const { tree, mobile_tree, url } = req.body ?? {};
+    const source = tree ?? mobile_tree;
+    if (!source) return reply.code(400).send({ ok: false, error: "tree or mobile_tree is required" });
+    return { ok: true, observation: buildObservationFromMobileTree(source, url) };
+  });
+
+  app.post("/cpms/feedback", async (req, reply) => {
+    const { target_id, feedback, evidence } = req.body ?? {};
+    if (!target_id || !feedback) return reply.code(400).send({ ok: false, error: "target_id and feedback are required" });
+    const record = {
+      feedback_id: req.body.feedback_id ?? `feedback:${randomUUID()}`,
+      target_id,
+      feedback,
+      evidence: evidence ?? null,
+      received_at: new Date().toISOString()
+    };
+    store.append("feedback", record);
+    return { ok: true, feedback: record };
+  });
+
+  app.post("/cpms/revisions/promote", async (req, reply) => {
+    const { kind, id, uuid } = req.body ?? {};
+    if (!["concept", "pattern"].includes(kind) || !(id || uuid)) {
+      return reply.code(400).send({ ok: false, error: "kind must be concept|pattern and id or uuid is required" });
+    }
+    const current = uuid ? store.latestByUuid(kind, uuid) : storeLatestById(store, kind, id);
+    if (!current) return reply.code(404).send({ ok: false, error: "revision target not found" });
+    const active = {
+      ...current,
+      status: "active",
+      promoted_at: new Date().toISOString()
+    };
+    store.append(kind, active);
+    return { ok: true, active };
+  });
+
   app.post("/cpms/activate", async (req, _reply) => {
     const { kind, uuid } = req.body ?? {};
     if (!kind || !uuid) return { ok: false, error: "kind + uuid required" };
@@ -159,6 +269,72 @@ export async function buildApp(options = {}) {
   });
 
   return app;
+}
+
+function storeList(store, kind) {
+  return typeof store.list === "function" ? store.list(kind) : [];
+}
+
+function storeLatestById(store, kind, rawId) {
+  const id = decodeURIComponent(String(rawId ?? ""));
+  if (typeof store.latestById === "function") return store.latestById(kind, id);
+  return [...storeList(store, kind)].reverse().find((row) => objectId(row, kind) === id || row.uuid === id) ?? null;
+}
+
+function latestRecords(records, kind) {
+  const byId = new Map();
+  for (const record of records) {
+    const id = objectId(record, kind);
+    if (id) byId.set(id, record);
+  }
+  return [...byId.values()];
+}
+
+function objectId(row, kind) {
+  if (kind === "concept") return row?.concept_id ?? row?.labels?.[0] ?? row?.uuid ?? null;
+  if (kind === "pattern") return row?.pattern_id ?? row?.labels?.[0] ?? row?.uuid ?? null;
+  return row?.id ?? row?.uuid ?? null;
+}
+
+async function persistConceptRecord(store, graphStore, concept) {
+  let storedConcept = concept;
+  let lint = null;
+  let graph = { ok: true, mode: "skipped" };
+
+  if (concept.kind === "cpms.concept") {
+    const validation = validateConceptSchema(concept);
+    if (!validation.ok) return { ok: false, lint: validation.report };
+    const compiled = compileConcept(validation.concept);
+    storedConcept = compiled.concept;
+    lint = validation.report;
+    graph = await graphStore.persistConcept(storedConcept);
+  } else if (!objectId(concept, "concept")) {
+    return { ok: false, error: "concept_id, labels[0], or uuid required" };
+  }
+
+  storedConcept = { ...storedConcept, updated_at: new Date().toISOString() };
+  store.append("concept", storedConcept);
+  return { ok: graph.ok !== false, concept: storedConcept, lint, graph };
+}
+
+function deepMerge(base, patch) {
+  if (!patch || typeof patch !== "object" || Array.isArray(patch)) return base;
+  const output = { ...base };
+  for (const [key, value] of Object.entries(patch)) {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === "object" &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value);
+    } else {
+      output[key] = value;
+    }
+  }
+  return output;
 }
 
 /**

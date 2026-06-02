@@ -37,9 +37,19 @@ describe("server-node API", () => {
   let app;
   let store;
   let graphStore;
+  let rows;
 
   beforeEach(async () => {
-    store = { append: vi.fn(), latestByUuid: vi.fn() };
+    rows = { concept: [], pattern: [], feedback: [] };
+    store = {
+      append: vi.fn((kind, row) => {
+        rows[kind] ??= [];
+        rows[kind].push(row);
+      }),
+      list: vi.fn((kind) => rows[kind] ?? []),
+      latestByUuid: vi.fn((kind, uuid) => [...(rows[kind] ?? [])].reverse().find((row) => row.uuid === uuid) ?? null),
+      latestById: vi.fn((kind, id) => [...(rows[kind] ?? [])].reverse().find((row) => objectId(row, kind) === id || row.uuid === id) ?? null)
+    };
     graphStore = { persistConcept: vi.fn().mockResolvedValue({ ok: true, mode: "file" }) };
     app = await buildApp({ logger: false, store, graphStore });
   });
@@ -88,6 +98,115 @@ describe("server-node API", () => {
     expect(body.ok).toBe(true);
     expect(store.append).toHaveBeenCalledWith("concept", expect.objectContaining({ uuid: template.uuid }));
     expect(graphStore.persistConcept).toHaveBeenCalled();
+  });
+
+  it("creates, lists, gets, and patches concepts", async () => {
+    const createRes = await app.inject({
+      method: "POST",
+      url: "/cpms/concepts",
+      payload: { concept: emailConcept }
+    });
+    expect(createRes.statusCode).toBe(200);
+    expect(createRes.json().concept.concept_id).toBe(emailConcept.concept_id);
+
+    const listRes = await app.inject({ method: "GET", url: "/cpms/concepts" });
+    expect(listRes.statusCode).toBe(200);
+    expect(listRes.json().concepts.map((concept) => concept.concept_id)).toContain(emailConcept.concept_id);
+
+    const getRes = await app.inject({ method: "GET", url: `/cpms/concepts/${encodeURIComponent(emailConcept.concept_id)}` });
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.json().concept.concept_id).toBe(emailConcept.concept_id);
+
+    const patchRes = await app.inject({
+      method: "PATCH",
+      url: `/cpms/concepts/${encodeURIComponent(emailConcept.concept_id)}`,
+      payload: { patch: { meta: { owner: "test" } } }
+    });
+    expect(patchRes.statusCode).toBe(200);
+    expect(patchRes.json().concept.meta.owner).toBe("test");
+  });
+
+  it("creates, lists, gets, and patches patterns", async () => {
+    const createRes = await app.inject({
+      method: "POST",
+      url: "/cpms/patterns",
+      payload: { pattern: loginPattern }
+    });
+    expect(createRes.statusCode).toBe(200);
+
+    const listRes = await app.inject({ method: "GET", url: "/cpms/patterns" });
+    expect(listRes.json().patterns.map((pattern) => pattern.pattern_id)).toContain(loginPattern.pattern_id);
+
+    const getRes = await app.inject({ method: "GET", url: `/cpms/patterns/${encodeURIComponent(loginPattern.pattern_id)}` });
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.json().pattern.pattern_id).toBe(loginPattern.pattern_id);
+
+    const patchRes = await app.inject({
+      method: "PATCH",
+      url: `/cpms/patterns/${encodeURIComponent(loginPattern.pattern_id)}`,
+      payload: { patch: { strategy: { top_k: 7 } } }
+    });
+    expect(patchRes.statusCode).toBe(200);
+    expect(patchRes.json().pattern.strategy.top_k).toBe(7);
+  });
+
+  it("builds observations from HTML and mobile trees", async () => {
+    const htmlRes = await app.inject({
+      method: "POST",
+      url: "/cpms/observations/from_html",
+      payload: {
+        url: "https://example.test/login",
+        html: "<label for='email'>Email</label><input id='email' autocomplete='email'>"
+      }
+    });
+    expect(htmlRes.statusCode).toBe(200);
+    expect(htmlRes.json().observation.page_id).toBe("https://example.test/login");
+    expect(htmlRes.json().observation.candidates[0].dom.attrs.id).toBe("email");
+
+    const mobileRes = await app.inject({
+      method: "POST",
+      url: "/cpms/observations/from_mobile_tree",
+      payload: {
+        url: "app://login",
+        tree: {
+          class: "android.widget.LinearLayout",
+          children: [
+            { resource_id: "com.example:id/email", class: "android.widget.EditText", text: "Email" },
+            { resource_id: "com.example:id/sign_in", class: "android.widget.Button", text: "Sign in", clickable: true }
+          ]
+        }
+      }
+    });
+    expect(mobileRes.statusCode).toBe(200);
+    const mobileObservation = mobileRes.json().observation;
+    expect(mobileObservation.page_id).toBe("app://login");
+    expect(mobileObservation.candidates.map((candidate) => candidate.mobile.resource_id)).toEqual([
+      "com.example:id/email",
+      "com.example:id/sign_in"
+    ]);
+  });
+
+  it("records feedback and promotes revisions", async () => {
+    await app.inject({ method: "POST", url: "/cpms/concepts", payload: { concept: { ...emailConcept, status: "draft" } } });
+
+    const feedbackRes = await app.inject({
+      method: "POST",
+      url: "/cpms/feedback",
+      payload: {
+        target_id: emailConcept.concept_id,
+        feedback: { type: "human_confirmed", candidate_id: "cand_email" }
+      }
+    });
+    expect(feedbackRes.statusCode).toBe(200);
+    expect(feedbackRes.json().feedback.target_id).toBe(emailConcept.concept_id);
+
+    const promoteRes = await app.inject({
+      method: "POST",
+      url: "/cpms/revisions/promote",
+      payload: { kind: "concept", id: emailConcept.concept_id }
+    });
+    expect(promoteRes.statusCode).toBe(200);
+    expect(promoteRes.json().active.status).toBe("active");
   });
 
   it("matches a pattern and assigns both concepts", async () => {
@@ -182,3 +301,9 @@ describe("server-node API", () => {
     expect(payload.fields.map(field => field.type)).toEqual(expect.arrayContaining(["email", "password", "submit"]));
   });
 });
+
+function objectId(row, kind) {
+  if (kind === "concept") return row.concept_id ?? row.labels?.[0] ?? row.uuid ?? null;
+  if (kind === "pattern") return row.pattern_id ?? row.labels?.[0] ?? row.uuid ?? null;
+  return row.id ?? row.uuid ?? null;
+}
