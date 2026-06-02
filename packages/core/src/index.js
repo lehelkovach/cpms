@@ -8,3 +8,6 @@ export * from "./engine/patternMatch.js";
 export * from "./schema/generator.js";
 export * from "./schema/compiler.js";
 export * from "./schema/language.js";
+export * from "./schema/jsonSchemas.js";
+export * from "./schema/conceptResolver.js";
+export * from "./memory/adapters.js";

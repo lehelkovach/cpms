@@ -1,4 +1,4 @@
-import { evalSignal } from "./evaluators.js";
+import { evalSignalDetailed, normalizeEvaluatorName } from "./evaluators.js";
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 const sigmoid = (x) => 1 / (1 + Math.exp(-x));
@@ -18,7 +18,8 @@ export function matchConceptExplain(concept, obs) {
     const sigTraces = [];
 
     for (const sig of concept.signals ?? []) {
-      const raw = clamp(evalSignal(sig, cand), 0, 1);
+      const evaluated = evalSignalDetailed(sig, cand);
+      const raw = clamp(evaluated.score, 0, 1);
       const mode = sig.mode ?? "fuzzy";
 
       let contrib = 0;
@@ -32,10 +33,19 @@ export function matchConceptExplain(concept, obs) {
 
       sigTraces.push({
         signal_id: sig.signal_id,
-        evaluator: sig.evaluator,
+        evaluator: normalizeEvaluatorName(sig.evaluator),
+        original_evaluator: sig.evaluator,
         mode,
         raw,
-        contribution: contrib
+        matched: raw >= 0.5,
+        weight: mode === "fuzzy" ? (sig.weight ?? 1.0) : undefined,
+        llr_when_true: mode === "bayes" ? (sig.llr_when_true ?? 0) : undefined,
+        llr_when_false: mode === "bayes" ? (sig.llr_when_false ?? 0) : undefined,
+        contribution: contrib,
+        raw_values: evaluated.evidence?.raw_values ?? [],
+        normalized_values: evaluated.evidence?.normalized_values ?? [],
+        normalized_terms: evaluated.evidence?.normalized_terms ?? [],
+        matched_terms: evaluated.evidence?.matched_terms ?? []
       });
     }
 
@@ -53,12 +63,25 @@ export function matchConceptExplain(concept, obs) {
   const confirm_threshold = d.confirm_threshold ?? 0.90;
 
   const accepted = !!best && best.p >= min_conf && margin >= min_margin;
-  const needs_user_confirmation = !accepted || (best?.p ?? 0) < confirm_threshold;
+  const needs_confirmation = !accepted || (best?.p ?? 0) < confirm_threshold;
+  const reason = !best
+    ? "no_candidates"
+    : best.p < min_conf
+      ? "below_min_conf"
+      : margin < min_margin
+        ? "below_min_margin"
+        : needs_confirmation
+          ? "below_confirmation_threshold"
+          : "accepted";
 
   return {
     concept_id: concept.concept_id,
+    score: best?.p ?? 0,
+    p: best?.p ?? 0,
     accepted,
-    needs_user_confirmation,
+    needs_confirmation,
+    needs_user_confirmation: needs_confirmation,
+    reason,
     best: best ? { candidate_id: best.candidate_id, p: best.p } : undefined,
     runner_up: second ? { candidate_id: second.candidate_id, p: second.p } : undefined,
     margin,

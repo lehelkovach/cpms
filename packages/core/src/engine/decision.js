@@ -10,11 +10,25 @@ export function winnerTakeAll(concept, scored) {
   const margin = best && second ? best.p - second.p : (best ? best.p : 0);
 
   const accepted = !!best && best.p >= min_conf && margin >= min_margin;
-  const needs_user_confirmation = !accepted || (best?.p ?? 0) < confirm_threshold;
+  const needs_confirmation = !accepted || (best?.p ?? 0) < confirm_threshold;
+  const reason = !best
+    ? "no_candidates"
+    : best.p < min_conf
+      ? "below_min_conf"
+      : margin < min_margin
+        ? "below_min_margin"
+        : needs_confirmation
+          ? "below_confirmation_threshold"
+          : "accepted";
 
   return {
+    concept_id: concept.concept_id,
+    score: best?.p ?? 0,
+    p: best?.p ?? 0,
     accepted,
-    needs_user_confirmation,
+    needs_confirmation,
+    needs_user_confirmation: needs_confirmation,
+    reason,
     best: best ? { candidate_id: best.id, p: best.p } : null,
     runner_up: second ? { candidate_id: second.id, p: second.p } : null,
     margin,

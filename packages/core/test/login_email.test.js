@@ -54,6 +54,114 @@ describe("matchConceptExplain(email)", () => {
     expect(ex.best.candidate_id).toBe("cand_email");
   });
 
+  it("emits deterministic explanation traces with normalized evidence", () => {
+    const ex = matchConceptExplain(concept, obs);
+    const stableTrace = {
+      concept_id: ex.concept_id,
+      accepted: ex.accepted,
+      needs_confirmation: ex.needs_confirmation,
+      reason: ex.reason,
+      best: ex.best?.candidate_id,
+      candidates: ex.candidates.map((candidate) => ({
+        candidate_id: candidate.candidate_id,
+        p: Number(candidate.p.toFixed(6)),
+        signals: candidate.signals.map((signal) => ({
+          signal_id: signal.signal_id,
+          evaluator: signal.evaluator,
+          matched: signal.matched,
+          raw_values: signal.raw_values,
+          normalized_values: signal.normalized_values,
+          matched_terms: signal.matched_terms
+        }))
+      }))
+    };
+
+    expect(stableTrace).toMatchInlineSnapshot(`
+      {
+        "accepted": true,
+        "best": "cand_email",
+        "candidates": [
+          {
+            "candidate_id": "cand_email",
+            "p": 0.999998,
+            "signals": [
+              {
+                "evaluator": "dom.attr_in",
+                "matched": true,
+                "matched_terms": [
+                  "email",
+                ],
+                "normalized_values": [
+                  "email",
+                ],
+                "raw_values": [
+                  "email",
+                ],
+                "signal_id": "ac",
+              },
+              {
+                "evaluator": "dom.text_contains_any",
+                "matched": true,
+                "matched_terms": [
+                  "email",
+                  "mail",
+                ],
+                "normalized_values": [
+                  "email",
+                  "email",
+                  "email",
+                ],
+                "raw_values": [
+                  "Email",
+                  "email",
+                  "email",
+                ],
+                "signal_id": "terms",
+              },
+            ],
+          },
+          {
+            "candidate_id": "cand_pass",
+            "p": 0.000006,
+            "signals": [
+              {
+                "evaluator": "dom.attr_in",
+                "matched": false,
+                "matched_terms": [],
+                "normalized_values": [
+                  "current password",
+                ],
+                "raw_values": [
+                  "current-password",
+                ],
+                "signal_id": "ac",
+              },
+              {
+                "evaluator": "dom.text_contains_any",
+                "matched": false,
+                "matched_terms": [],
+                "normalized_values": [
+                  "password",
+                  "password",
+                  "current password",
+                ],
+                "raw_values": [
+                  "Password",
+                  "password",
+                  "current-password",
+                ],
+                "signal_id": "terms",
+              },
+            ],
+          },
+        ],
+        "concept_id": "concept:email@1.0.0",
+        "needs_confirmation": false,
+        "reason": "accepted",
+      }
+    `);
+  });
+
   it("needs feedback to handle multilingual cues", () => {
     const naiveConcept = {
       ...concept,

@@ -1,5 +1,7 @@
-// Very lightweight "compiler": normalize + soft-lint + drop unknown evaluators.
-// This is NON-BLOCKING: it returns warnings/errors but still produces output.
+import { KNOWN_EVALUATOR_NAMES, normalizeEvaluatorName } from "../engine/evaluators.js";
+
+// Very lightweight compiler: normalize + soft-lint + drop unknown evaluators.
+// Unknown evaluators fail closed by being excluded from compiled active signals.
 
 const DEFAULT_RANGES = {
   weight: [-10, 10],
@@ -7,13 +9,7 @@ const DEFAULT_RANGES = {
   prior_logit: [-10, 10]
 };
 
-// Expand this allowlist as you add evaluators in core.
-export const ALLOWED_EVALUATORS = new Set([
-  "dom.attr_in",
-  "dom.text_contains_any",
-  "dom.role_is",
-  "dom.type_is"
-]);
+export const ALLOWED_EVALUATORS = new Set(KNOWN_EVALUATOR_NAMES);
 
 export function lintConcept(concept) {
   const warnings = [];
@@ -26,9 +22,13 @@ export function lintConcept(concept) {
   if (!Array.isArray(concept?.signals)) warnings.push("signals should be an array");
 
   for (const s of concept?.signals ?? []) {
+    const evaluator = normalizeEvaluatorName(s?.evaluator);
     if (!s?.evaluator) warnings.push(`signal ${s?.signal_id ?? "?"} missing evaluator`);
-    if (s?.evaluator && !ALLOWED_EVALUATORS.has(s.evaluator)) {
+    if (s?.evaluator && !ALLOWED_EVALUATORS.has(evaluator)) {
       warnings.push(`unknown evaluator '${s.evaluator}' (will be ignored by compiler)`);
+    }
+    if (s?.evaluator && evaluator !== s.evaluator) {
+      warnings.push(`evaluator '${s.evaluator}' is deprecated; normalized to '${evaluator}'`);
     }
     if (s?.mode === "fuzzy" && typeof s.weight === "number" && !Number.isFinite(s.weight)) {
       warnings.push(`signal '${s.signal_id}' weight is not finite`);
@@ -60,10 +60,12 @@ export function compileConcept(concept) {
   const dropped = [];
 
   for (const s of normalized?.signals ?? []) {
-    if (s?.evaluator && !ALLOWED_EVALUATORS.has(s.evaluator)) {
+    const evaluator = normalizeEvaluatorName(s?.evaluator);
+    if (s?.evaluator && !ALLOWED_EVALUATORS.has(evaluator)) {
       dropped.push({ signal_id: s.signal_id ?? null, reason: "unknown_evaluator", evaluator: s.evaluator });
       continue;
     }
+    if (s?.evaluator) s.evaluator = evaluator;
     if (s?.mode === "fuzzy" && typeof s.weight === "number" && Number.isFinite(s.weight)) {
       s.weight = clamp(s.weight, DEFAULT_RANGES.weight);
     }
