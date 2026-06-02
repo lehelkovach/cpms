@@ -10,10 +10,10 @@ Historical aliases such as "Concept / Prototype Memory Schema" may appear in old
 
 ## Current Development Status
 
-**Version**: 0.1.2+ (Python client)  
-**Phase**: Beta - Core API functional, enhancements in progress  
-**Last Updated**: 2024-12-19  
-**Status**: ✅ Ready for osl-agent-prototype integration
+**Version**: 0.2.0  
+**Phase**: Beta - Robust prototype language and login regression suite  
+**Last Updated**: 2026-06-02  
+**Status**: ✅ Ready for agent-facing login/form recognition integration
 
 ### ✅ Implemented Features
 
@@ -82,7 +82,7 @@ Historical aliases such as "Concept / Prototype Memory Schema" may appear in old
 
 #### osl-agent-prototype
 - **Status**: ✅ Ready for integration
-- **Version**: Requires cpms-client >=0.1.2
+- **Version**: Requires cpms-client >=0.2.0
 - **Features Used**: `detect_form()`, pattern matching
 - **Integration Docs**: See `INTEGRATION_READY.md` and `READY_FOR_AGENT_INTEGRATION.md`
 - **Issues**: None known
@@ -112,6 +112,8 @@ It’s built to be the **schema + matching + explanation** component used by AI 
   - [docs/FORM_CLASSIFICATION_READINESS.md](docs/FORM_CLASSIFICATION_READINESS.md)
 - **Conceptual model**: CPMS terminology, boundaries, and NoShogo/KSG integration
   - [docs/CONCEPTUAL_MODEL.md](docs/CONCEPTUAL_MODEL.md)
+- **Release log**: tested release notes and verification history
+  - [docs/RELEASE_LOG.md](docs/RELEASE_LOG.md)
 - **Schema language (JSON)**: how to define Concepts, Patterns, and (planned) Procedures  
   - [docs/SCHEMA_LANGUAGE.md](docs/SCHEMA_LANGUAGE.md)
 - **Observation model**: how to represent DOM + vision candidates for matching  

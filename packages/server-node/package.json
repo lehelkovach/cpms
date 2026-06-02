@@ -1,6 +1,6 @@
 {
   "name": "@lehelkovach/cpms-server-node",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CPMS Node API (pure JS): match, match_explain, match_pattern.",
   "author": "Lehel Kovach",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "pack:check": "npm pack --dry-run"
   },
   "dependencies": {
-    "@lehelkovach/cpms-core": "workspace:^0.1.0",
+    "@lehelkovach/cpms-core": "workspace:^0.2.0",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.2",
     "cheerio": "^1.2.0",

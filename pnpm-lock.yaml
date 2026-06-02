@@ -27,7 +27,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.3
       '@lehelkovach/cpms-core':
-        specifier: workspace:^0.1.0
+        specifier: workspace:^0.2.0
         version: link:../core
       cheerio:
         specifier: ^1.2.0

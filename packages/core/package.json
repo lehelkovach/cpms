@@ -1,6 +1,6 @@
 {
   "name": "@lehelkovach/cpms-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CPMS core (pure JS): evaluators + hybrid scoring + explain traces + naive pattern matching.",
   "author": "Lehel Kovach",
   "license": "MIT",
