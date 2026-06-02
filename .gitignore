@@ -4,3 +4,11 @@ dist/
 .env
 pnpm-debug.log
 .AGENT/test-output/
+.venv/
+.npm-cache/
+**/.npm-cache/
+*.ipynb
+*.egg-info/
+.cpms-graph/
+packages/server-node/data/
+package-lock.json

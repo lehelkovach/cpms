@@ -1,6 +1,6 @@
 # CPMS Schema Language
 
-CPMS exposes a JSON schema language that lets LLM agents and tooling describe fuzzy “concept prototypes”, compose them into patterns, and (soon) procedures. The schema language is available via the API (`GET /cpms/schema/concepts/language`) and provides a ready-to-edit template for generation workflows (`POST /cpms/schema/concepts/template`).
+CPMS (Concept Prototype Matching System) exposes a JSON schema language that lets agents and tooling describe fuzzy concept prototypes, compose them into patterns, and (soon) procedures. The schema language is available via the API (`GET /cpms/schema/concepts/language`) and provides a ready-to-edit template for generation workflows (`POST /cpms/schema/concepts/template`).
 
 ## Concepts
 
@@ -52,7 +52,7 @@ Key rules:
 
 - `labels[]` must be non-empty; the first entry is canonical and typically matches the concept ID.
 - `prototype_of` points to an ontology/type (e.g., `type:password_field`, `type:submit_button`).
-- Each signal references an allow-listed evaluator (`dom.attr_in`, `dom.text_contains_any`, `dom.role_is`, `dom.type_is` in v0.1.0). The compiler clamps weights / LLRs to safe ranges.
+- Each signal references an allowlisted evaluator. Current core evaluators include DOM, accessibility, mobile, and placeholder vision/semantic names such as `dom.attr_in`, `dom.text_contains_any`, `dom.input_type_is`, `a11y.name_contains_any`, `mobile.text_contains_any`, and `vision.ocr_contains_any`. The compiler normalizes legacy aliases such as `dom.type_is` and clamps weights / LLRs to safe ranges.
 - Status tracks workflow state (`draft`, `active`, etc.). Drafts are stored append-only until promoted.
 - `llm_embedding_meta` describes which embedding model/version produced the vector so downstream vector search can stay compatible. Always update `version` when switching models.
 

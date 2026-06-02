@@ -1,8 +1,10 @@
-# CPMS — Concept / Prototype Memory Schema
+# CPMS — Concept Prototype Matching System
 
 Author: **Lehel Kovach** (GitHub: `@lehelkovach`)
 
-CPMS is an **open-source** library + API for representing and matching **fuzzy "concept prototypes"** against observations (DOM/UI data), and composing those concepts into higher-level **patterns** (e.g., *login form*, *payment form*).
+CPMS is an **open-source prototype-based concept representation and matching schema/runtime**. It represents concepts as weighted fuzzy prototypes, matches normalized observations (DOM/UI data first, mobile and vision contracts next), and composes concepts into higher-level **patterns** such as *login form* and *payment form*.
+
+Historical aliases such as "Concept / Prototype Memory Schema" may appear in older notes. The public expansion is now **Concept Prototype Matching System**: CPMS is not long-term memory itself; it can persist drafts, versions, feedback, and graph-friendly events that a separate memory/ontology layer such as NoShogo/KSG can store.
 
 ---
 
@@ -87,13 +89,13 @@ CPMS is an **open-source** library + API for representing and matching **fuzzy "
 
 ---
 
-It’s built to be the **memory + schema + matching** component used by AI agents and automation systems. A separate “agent” project (Playwright/Selenium + OpenAI tool-calling) can use CPMS to:
-- retrieve prototypes via vector search (RAG)
+It’s built to be the **schema + matching + explanation** component used by AI agents and automation systems. A separate “agent” project (Playwright/Selenium/Appium + tool-calling) can use CPMS to:
+- retrieve prototypes via CPMS persistence or a separate vector/ontology store
 - match prototypes to new pages/screens
 - ask for human feedback when confidence is low
 - apply safe, versioned updates to improve future matching
 
-> CPMS focuses on *schema + matching + update/versioning + persistence*.  
+> CPMS focuses on *prototype schema + matching + explanation + update/versioning semantics*.  
 > Browser automation, credentials, and LLM prompting/execution are intentionally out-of-scope (belong in a separate agent repo).
 
 ---
@@ -108,6 +110,8 @@ It’s built to be the **memory + schema + matching** component used by AI agent
   - [.AGENT/agent-action-log.md](.AGENT/agent-action-log.md)
 - **Form classification readiness**: current `/cpms/detect_form` scope, coverage, debug client, and extension plan
   - [docs/FORM_CLASSIFICATION_READINESS.md](docs/FORM_CLASSIFICATION_READINESS.md)
+- **Conceptual model**: CPMS terminology, boundaries, and NoShogo/KSG integration
+  - [docs/CONCEPTUAL_MODEL.md](docs/CONCEPTUAL_MODEL.md)
 - **Schema language (JSON)**: how to define Concepts, Patterns, and (planned) Procedures  
   - [docs/SCHEMA_LANGUAGE.md](docs/SCHEMA_LANGUAGE.md)
 - **Observation model**: how to represent DOM + vision candidates for matching  
@@ -129,26 +133,26 @@ Web UIs and forms rarely look the same:
 - bots often need a fallback to vision/pixels
 
 CPMS provides a way to model:
-- **what a thing is** (a concept prototype)
-- **how to recognize it** (signals / fuzzy + probabilistic scoring)
+- **what a thing is** (a concept)
+- **how to recognize it** (a fuzzy prototype with signals / probabilistic scoring)
 - **how concepts compose** (patterns like login/payment)
 - **how to iteratively improve** (feedback → patch → new version)
-- **how to store/query** this knowledge (file-backed now; graph DB later)
+- **how to emit/store/query metadata** through persistence adapters and external memory/ontology systems
 
 ---
 
 ## Core ideas
 
-### Concepts
-A **Concept** represents a matchable prototype like:
+### Concepts and prototypes
+A **Concept** is the semantic category being recognized, for example:
 - `concept:email@1.0.0`
 - `concept:password@1.0.0`
 - `concept:submit_login@1.0.0`
 
-A concept contains:
+A **Prototype** is the fuzzy representation of that concept. In CPMS, a prototype contains:
 - **signals** (rules / evidence) that score candidates
 - a **decision policy** (winner-take-all, margins, thresholds)
-- optional **embeddings** (stored and retrieved via the DB layer)
+- optional **embeddings** and provenance metadata for retrieval systems
 
 ### Signals
 Signals are allowlisted evaluator calls (safe, deterministic), such as:
@@ -182,7 +186,7 @@ Patterns are matched with greedy + repair assignment:
 A **Procedure** is a directed graph of steps that an agent can execute externally, for example:
 - `NAVIGATE → SNAPSHOT → MATCH_PATTERN → FILL(email/password) → CLICK(submit) → VERIFY`
 
-CPMS will store procedures as first-class graph objects so agents can:
+Future CPMS persistence can describe procedures as graph-addressable objects so agents can:
 - retrieve a procedure by semantic intent (embedding similarity)
 - bind concept matches to step inputs (e.g., “fill the matched email field”)
 - version and improve procedures via feedback
@@ -212,7 +216,7 @@ An agent can:
 
 snapshot a page (DOM + screenshot)
 
-retrieve CPMS patterns via vector search (RAG)
+retrieve CPMS patterns via CPMS persistence or an external vector/ontology layer
 
 match and assign fields/buttons
 
@@ -224,7 +228,7 @@ store exemplar + feedback to improve prototypes
 
 2) Building a durable ontology for UI interaction
 
-CPMS objects map cleanly to a property graph model:
+CPMS objects map cleanly to a property graph or memory/ontology model:
 
 concepts, patterns, signals, exemplars/episodes, revisions
 
@@ -299,10 +303,10 @@ assigned: mapping of concept IDs → candidate IDs
 
 trace: rankings + repairs + missing required concepts
 
-Storage + ArangoDB (optional backend)
+Storage + memory/ontology integration
 
-CPMS is designed to support a property-graph backend (recommended for versioning + provenance)
-and vector search for prototype retrieval.
+CPMS is designed to support persistence adapters and graph-friendly events for versioning, provenance,
+and prototype retrieval without becoming the full memory/ontology layer.
 
 Suggested direction:
 
@@ -310,7 +314,7 @@ store Concepts/Patterns/Signals/Episodes/Revisions as graph documents + edges
 
 store embeddings as vectors and query “nearest prototypes” for RAG
 
-expose a DB API used by agents (separate repo) for memory and updates
+expose integration hooks used by agents and external memory systems for feedback and updates
 
 Docker + ArangoDB compose files can live in this repo (dev-only), or in a separate cpms-stack repo if you prefer operational separation.
 

@@ -71,7 +71,7 @@ cat > package.json <<EOF
 EOF
 
 cat > README.md <<EOF
-# CPMS — Concept / Prototype Memory Schema (JS prototype)
+# CPMS — Concept Prototype Matching System (JS prototype)
 
 Author: **${AUTHOR_NAME}**  
 GitHub: ${REPO_URL}

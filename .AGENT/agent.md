@@ -183,8 +183,10 @@ generic across repositories and can be customized after forking.
 #### Below: Repository-Specific Directions
 
 1) CPMS Mission and Boundaries
-	a) CPMS is the Concept / Prototype Memory Schema: a library and Fastify API for fuzzy UI
-	   concept matching, pattern matching, schema drafting, and persistence.
+	a) CPMS is the Concept Prototype Matching System: a library and Fastify API for fuzzy UI
+	   concept prototype matching, pattern matching, schema drafting, and persistence.
+	   "Concept / Prototype Memory Schema" is a historical alias; CPMS is not the long-term
+	   memory/ontology layer itself.
 	b) CPMS is the classification and field-detection layer for external agents. It does not
 	   execute browser, app, credential, or form-filling actions itself.
 	c) The agent-project pivot should call `/cpms/detect_form` or the Python
