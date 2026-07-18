@@ -210,8 +210,9 @@ flowchart LR
   R --> T[Regression Fixtures + Gate]
   T -->|pass| A[Promote to Active]
   T -->|fail| K[Keep draft + iterate]
+```
 
-Use cases
+## Use cases
 1) Form understanding for agents (DOM-first, vision optional)
 
 An agent can:
@@ -349,7 +350,3 @@ MIT
 Disclaimer
 
 CPMS is a schema + matching library. If you build automation agents on top of it, ensure you have permission to interact with target sites and comply with applicable policies and terms of service.
-
-
-If you want, I can also add a small `docs/ARCHITECTURE.md` that explains the graph model (Concept/Signal/Pattern/Episode/Revision) and includes example Arango collections + edge types.
-::contentReference[oaicite:0]{index=0}
