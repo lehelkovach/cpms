@@ -68,8 +68,21 @@ function extractCandidates(html) {
     const role = inferRole(tagName, attrs);
     const type = attrs.type || inferType(tagName, attrs);
 
+    const formEl = $(element).closest("form").get(0);
+    let form_id = "form:orphan";
+    if (formEl) {
+      const formIdAttr = formEl.attribs?.id;
+      if (formIdAttr) {
+        form_id = `form:#${formIdAttr}`;
+      } else {
+        const formIndex = $("form").toArray().indexOf(formEl);
+        form_id = `form:idx:${formIndex >= 0 ? formIndex : 0}`;
+      }
+    }
+
     candidates.push({
       candidate_id: `cand_${index}`,
+      form_id,
       dom: {
         attrs,
         tag: tagName,

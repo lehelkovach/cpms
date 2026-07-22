@@ -94,6 +94,51 @@ async function main() {
     const detectBody = await detectRes.body.json();
     if (detectBody.form_type !== "login") throw new Error(`detect_form classified ${detectBody.form_type}`);
     if (!detectBody.fields?.some(field => field.type === "email")) throw new Error("detect_form missing email field");
+    const emailSelector = detectBody.fields.find((field) => field.type === "email")?.selector;
+    if (!emailSelector || emailSelector === "input, textarea, select, button") {
+      throw new Error(`detect_form email selector too generic: ${emailSelector}`);
+    }
+
+    const paymentRes = await request(`${baseUrl}/cpms/detect_form`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        html: `
+          <form>
+            <label for="cc-name">Name on card</label>
+            <input id="cc-name" autocomplete="cc-name" />
+            <label for="cc-number">Card number</label>
+            <input id="cc-number" autocomplete="cc-number" />
+            <label for="cc-exp">Expiry</label>
+            <input id="cc-exp" autocomplete="cc-exp" />
+            <label for="cc-csc">CVV</label>
+            <input id="cc-csc" autocomplete="cc-csc" />
+            <button type="submit">Pay now</button>
+          </form>
+        `
+      })
+    });
+    if (paymentRes.statusCode !== 200) throw new Error(`detect_form payment failed: ${paymentRes.statusCode}`);
+    const paymentBody = await paymentRes.body.json();
+    if (paymentBody.form_type !== "payment") throw new Error(`detect_form payment classified ${paymentBody.form_type}`);
+    if ((paymentBody.required?.missing ?? []).length) throw new Error("detect_form payment missing required fields");
+
+    const unknownRes = await request(`${baseUrl}/cpms/detect_form`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        html: `
+          <form>
+            <label for="only-email">Email</label>
+            <input id="only-email" autocomplete="email" />
+            <button type="submit">Continue</button>
+          </form>
+        `
+      })
+    });
+    if (unknownRes.statusCode !== 200) throw new Error(`detect_form unknown failed: ${unknownRes.statusCode}`);
+    const unknownBody = await unknownRes.body.json();
+    if (unknownBody.form_type !== "unknown") throw new Error(`expected unknown form_type, got ${unknownBody.form_type}`);
 
     const templateRes = await request(`${baseUrl}/cpms/schema/concepts/template`, {
       method: "POST",

@@ -257,10 +257,15 @@ export async function buildApp(options = {}) {
         observation = buildObservationFromHtml(html ?? "", screenshotPath, url, dom_snapshot);
       }
 
-      const detections = loadDefaultPatterns().map(({ pattern, concepts }) => {
-        const matchResult = matchPatternGreedyRepair(pattern, concepts, observation);
-        return transformMatchResultToAgentFormat(matchResult, pattern, concepts, observation);
-      });
+      // Score each form subtree separately so newsletter/search fields on the same
+      // page do not steal login/payment assignments from a neighboring form.
+      const detections = [];
+      for (const scoped of observationsByForm(observation)) {
+        for (const { pattern, concepts } of loadDefaultPatterns()) {
+          const matchResult = matchPatternGreedyRepair(pattern, concepts, scoped);
+          detections.push(transformMatchResultToAgentFormat(matchResult, pattern, concepts, scoped));
+        }
+      }
 
       return selectBestDetection(detections);
     } catch (error) {
@@ -411,6 +416,30 @@ function selectBestDetection(detections) {
   };
 }
 
+function observationsByForm(observation) {
+  const candidates = observation?.candidates ?? [];
+  const groups = new Map();
+  for (const candidate of candidates) {
+    const key = candidate.form_id || "form:orphan";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(candidate);
+  }
+
+  // When HTML yields multiple <form> subtrees, score each separately so fields
+  // from a newsletter/search form cannot be assigned into a login/payment fill.
+  // Fall back to the full candidate set for prebuilt/mobile snapshots without form ids.
+  const distinctForms = [...groups.keys()].filter((key) => key !== "form:orphan");
+  if (distinctForms.length > 1) {
+    return distinctForms.map((formId) => ({
+      ...observation,
+      page_id: `${observation.page_id || "page"}:${formId}`,
+      candidates: groups.get(formId)
+    }));
+  }
+
+  return [{ ...observation, candidates }];
+}
+
 function getRequiredConceptIds(pattern) {
   const required = (pattern.constraints ?? [])
     .filter(constraint => constraint.type === "required_concepts")
@@ -440,7 +469,14 @@ function inferFieldType(concept) {
 function buildSelector(candidate) {
   const attrs = candidate.dom?.attrs || {};
   const tag = candidate.dom?.tag || "input";
-  
+
+  // Prefer stable test/automation hooks before cosmetic ids when both exist.
+  if (attrs["data-testid"]) {
+    return `${tag}[data-testid="${cssEscapeString(attrs["data-testid"])}"]`;
+  }
+  if (attrs["data-test"]) {
+    return `${tag}[data-test="${cssEscapeString(attrs["data-test"])}"]`;
+  }
   if (attrs.id) {
     return `#${cssEscapeIdent(attrs.id)}`;
   }
@@ -459,7 +495,7 @@ function buildSelector(candidate) {
   if (candidate.dom?.role) {
     return `[role="${cssEscapeString(candidate.dom.role)}"]`;
   }
-  
+
   return tag === "button" ? "button" : "input, textarea, select, button";
 }
 
